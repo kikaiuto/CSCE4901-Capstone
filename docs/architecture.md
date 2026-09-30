@@ -76,6 +76,29 @@ Non-functional: NF8, NF9, NF11.
 
 ## Frontend
 
+The frontend mirrors the backend addon names. `frontend/src/core/` is the
+framework half — the app shell, the UI primitives, `lib/`, the design tokens, and
+the test harness. `frontend/src/addons/<name>/` holds that addon's screens,
+components, and fixtures.
+
+Each addon carries a `manifest.ts` declaring its id, label, icon, track, screens,
+nav placement, and the work queue groups it contributes to.
+
+**Not built yet.** These manifests are declarations without a consumer. The module
+list is still written out by hand in four places:
+
+- the route table in `src/routes/index.tsx`
+- the `OPERATIONS` array in `src/core/app/Sidebar.tsx`
+- the icon keys in `src/core/components/ui/Icon.tsx`
+- the `MODULES` line in `src/addons/base/screens/SignInScreen.tsx`
+
+Folding those four into the manifests is the frontend half of the registry
+described under Module Boundaries. Until it exists, adding an addon means five
+edits, and the manifests can drift from what the app actually routes. Screens for
+`inventory`, `procurement`, `accounting`, and `forecasting` do not exist yet;
+those routes render `core/app/Placeholder` and their manifests declare the screen
+IDs the wireframes specify.
+
 ## Deployment Topology
 
 ## Observability
