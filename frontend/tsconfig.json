@@ -1,3 +1,7 @@
 {
-  "name": "sector7-ai-frontend-tsconfig"
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }
