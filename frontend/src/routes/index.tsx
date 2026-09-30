@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router'
-import { AppShell } from '@/app/AppShell'
-import { Placeholder } from '@/app/Placeholder'
-import { SignInScreen } from '@/features/auth/SignInScreen'
-import { TodayScreen } from '@/features/home/TodayScreen'
-import { OrdersScreen } from '@/features/sales/OrdersScreen'
+import { AppShell } from '@/core/app/AppShell'
+import { Placeholder } from '@/core/app/Placeholder'
+import { SignInScreen } from '@/addons/base/screens/SignInScreen'
+import { TodayScreen } from '@/addons/home/screens/TodayScreen'
+import { OrdersScreen } from '@/addons/sales/screens/OrdersScreen'
 
 export const router = createBrowserRouter([
   { path: '/', element: <SignInScreen /> },
@@ -23,8 +23,8 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/purchasing',
-        element: <Placeholder module="Purchasing" screens={['S-06 Receive purchase order']} />,
+        path: '/procurement',
+        element: <Placeholder module="Procurement" screens={['S-06 Receive purchase order']} />,
       },
       {
         path: '/accounting',
