@@ -101,7 +101,7 @@ lining up vertically. The `figure` utility applies the mono family with tabular 
 and slashed zero; use it, don't hand-roll a font stack.
 
 Money is formatted from strings, never floats, matching the `Decimal`-only rule in
-`CLAUDE.md`. `frontend/src/lib/decimal.ts` does the formatting and never does arithmetic.
+`CLAUDE.md`. `frontend/src/core/lib/decimal.ts` does the formatting and never does arithmetic.
 
 ## Structure
 
@@ -189,9 +189,9 @@ Two entry points share one `AnswerPanel`, so the two can never drift:
 - **⌘K** — the command bar over any screen. Typing switches it into Ask mode; it also
   holds commands and jump-to-record results.
 
-`useAsk` currently matches a question against fixtures in `src/mocks/ai.ts` and returns
+`useAsk` currently matches a question against fixtures in `src/addons/ai/fixtures/ai.ts` and returns
 after a short delay to stand in for latency. Replacing it with a real call to
-`backend/app/modules/ai/` is a change to that one hook — the panel, the citations, and the
+`backend/app/addons/ai/` is a change to that one hook — the panel, the citations, and the
 draft rendering stay as they are. The `ToolCall` and `AiAnswer` shapes in the fixtures are
 deliberately close to what that endpoint should return.
 
