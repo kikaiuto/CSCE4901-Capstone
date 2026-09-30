@@ -2,7 +2,7 @@
 
 The rules the Sector 7 frontend is built from. Everything here comes out of the ten
 wireframes in `wireframes/` (S-01 to S-10) and the rationale section of the UI design
-document. Tokens live in `frontend/src/styles/theme.css`; this file explains them.
+document. Tokens live in `frontend/src/core/styles/theme.css`; this file explains them.
 
 ## What the design is trying to do
 

@@ -4,9 +4,6 @@ export const manifest = {
   icon: 'sparkle',
   track: 'AIX',
   screens: ['S-08 Command bar with AI'],
-  nav: {
-    group: 'top',
-    to: '/ask',
-  },
+  nav: null,
   queueGroups: [],
 }
