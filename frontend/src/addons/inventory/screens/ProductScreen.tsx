@@ -8,11 +8,10 @@ import { SegmentedControl } from '@/core/components/ui/SegmentedControl'
 import { StatTile } from '@/core/components/ui/StatTile'
 import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
-import { ChartCard, StepAreaChart, chartColor } from '@/core/components/charts'
+import { ChartCard, StepAreaChart, chartColor, type StockPoint } from '@/core/components/charts'
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
-import { forecastSeries, stockoutRisk } from '@/addons/forecasting/fixtures/forecast'
-import { forecastSpec, overlayRows } from '@/addons/forecasting/components/forecastOverlay'
+import { overlayFor } from '@/core/app/overlays'
 import { products } from '../fixtures/products'
 import { openDocuments, stockLedger, stockSeries, todayLabel, type StockWindow } from '../fixtures/stock'
 
@@ -28,23 +27,20 @@ export function ProductScreen() {
   const product = products.find((item) => item.sku === sku)
   const fresh = useFirstVisit(`inventory/product/${sku}`)
 
-  const data = useMemo(() => {
-    const history = stockSeries[range].map((point) => ({ ...point }))
-    const overlay = overlayRows(forecastSeries[range])
-    const byLabel = new Map(history.map((point) => [point.label, point as Record<string, unknown>]))
+  const overlay = overlayFor('S-05')
 
-    for (const row of overlay) {
+  const data = useMemo(() => {
+    const history = stockSeries[range].map((point) => ({ ...point }) as Record<string, unknown>)
+    const byLabel = new Map(history.map((point) => [point.label as string, point]))
+
+    for (const row of overlay?.rows(range) ?? []) {
       const existing = byLabel.get(row.label)
-      if (existing) {
-        existing.projected = row.projected
-        existing.band = row.band
-      } else {
-        history.push({ ...row, onHand: undefined as unknown as number })
-      }
+      if (existing) Object.assign(existing, row)
+      else history.push({ ...row })
     }
 
-    return history
-  }, [range])
+    return history as StockPoint[]
+  }, [range, overlay])
 
   if (!product) {
     return <EmptyState title="No such product" detail={`Nothing in the catalog matches ${sku}.`} />
@@ -122,10 +118,10 @@ export function ProductScreen() {
             safetyStock={Number(product.safetyStock)}
             safetyColor="var(--color-negative)"
             todayLabel={todayLabel}
-            riskFrom={stockoutRisk.from}
-            riskTo={stockoutRisk.to}
+            riskFrom={overlay?.risk?.from}
+            riskTo={overlay?.risk?.to}
             riskColor="var(--color-negative)"
-            overlay={forecastSpec}
+            overlay={overlay?.spec}
           />
         </ChartCard>
 

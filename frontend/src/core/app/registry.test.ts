@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { router } from '@/routes'
 import { addons, moduleFor, navItems, operationLabels, railItems } from './registry'
+import type { NavEntry } from './manifest'
 
 function routePaths(): string[] {
   const paths: string[] = []
@@ -23,14 +24,18 @@ describe('registry', () => {
   })
 
   it('orders the rail by sequence', () => {
-    const sequences = addons.map((addon) => addon.sequence)
+    const sequences = railItems.map((item) => item.sequence)
     expect(sequences).toEqual([...sequences].sort((a, b) => a - b))
   })
 
   it('gives every nav destination a route', () => {
     const paths = routePaths()
-    for (const addon of addons) {
-      expect(paths, `${addon.name} has no route for ${addon.to}`).toContain(addon.to)
+    const nav = addons
+      .map((addon) => addon.nav)
+      .filter((entry): entry is NavEntry => entry !== undefined)
+
+    for (const entry of nav) {
+      expect(paths, `no route for ${entry.to}`).toContain(entry.to)
     }
   })
 
@@ -41,7 +46,7 @@ describe('registry', () => {
   })
 
   it('leaves Admin off the rail body', () => {
-    expect(railItems.some((addon) => addon.group === 'admin')).toBe(false)
+    expect(railItems.some((item) => item.group === 'admin')).toBe(false)
   })
 
   it('resolves a nested path back to its module', () => {

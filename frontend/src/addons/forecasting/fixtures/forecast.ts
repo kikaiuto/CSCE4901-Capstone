@@ -1,5 +1,3 @@
-import type { StockWindow } from '@/addons/inventory/fixtures/stock'
-
 export interface ForecastPoint {
   label: string
   projected: number
@@ -7,7 +5,9 @@ export interface ForecastPoint {
   upper: number
 }
 
-export const forecastSeries: Record<StockWindow, ForecastPoint[]> = {
+export type ForecastWindow = '30D' | '60D' | '90D'
+
+export const forecastSeries: Record<ForecastWindow, ForecastPoint[]> = {
   '30D': [
     { label: 'Sep 30', projected: 4, lower: 4, upper: 4 },
     { label: 'Oct 4', projected: 48, lower: 44, upper: 52 },
@@ -23,5 +23,3 @@ export const forecastSeries: Record<StockWindow, ForecastPoint[]> = {
     { label: 'Oct 10', projected: 36, lower: 24, upper: 48 },
   ],
 }
-
-export const stockoutRisk = { from: 'Sep 24', to: 'Sep 30' }

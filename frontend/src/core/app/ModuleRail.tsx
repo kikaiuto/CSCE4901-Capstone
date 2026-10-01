@@ -4,12 +4,11 @@ import { Avatar } from '@/core/components/ui/Avatar'
 import { Icon } from '@/core/components/ui/Icon'
 import { ThemeToggle } from '@/core/components/ui/ThemeToggle'
 import { currentUser, organization } from '@/addons/base/fixtures/org'
-import type { AddonManifest } from './manifest'
-import { moduleFor, navItems, railItems } from './registry'
+import { moduleFor, navItems, railItems, type NavItem } from './registry'
 
 const ITEM_HEIGHT = 56
 
-function RailLink({ addon, labels }: { addon: AddonManifest; labels: boolean }) {
+function RailLink({ addon, labels }: { addon: NavItem; labels: boolean }) {
   return (
     <NavLink
       to={addon.to}

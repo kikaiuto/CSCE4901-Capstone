@@ -76,3 +76,43 @@ this, so an undeclared import fails CI rather than review.
 the read-only contracts in `app/core/contracts/` and the categories in
 `app/core/registry.py`, never by importing them. This is what makes the AI layer
 isolation rule above machine-checkable.
+
+## Frontend layout
+
+The frontend mirrors the same split. Framework code lives in `frontend/src/core/`,
+business code in `frontend/src/addons/<name>/`, one directory per backend addon.
+
+| Path | Holds |
+| --- | --- |
+| `manifest.ts` | `name`, `depends`, `screens`, and an optional `nav` entry |
+| `screens/` | One component per wireframe screen |
+| `components/` | Pieces used by this addon's screens |
+| `fixtures/` | Stand-in data, shaped as the endpoint response it will become |
+| `hooks/` | This addon's hooks |
+
+`depends` and `screens` mirror `__manifest__.py`. The `nav` entry is frontend-only:
+addons without a rail destination, such as `ai` and `forecasting`, omit it.
+
+**An addon may import from `@/core` and from the addons in its own `depends`,
+nothing else.** `src/core/app/addonDeps.test.ts` enforces this and also rejects
+cycles, so an undeclared import fails the suite rather than review. It is the
+counterpart to `backend/tests/architecture/test_addon_deps.py`, and it exists
+because the first version of the S-05 forecast overlay had `inventory` importing
+`forecasting`, inverting the declared direction with nothing to catch it.
+
+Addons contribute to the other direction through core rather than importing each
+other, the same way the backend registry works. `forecasting` owns the S-05 chart
+overlay; it registers that contribution in `src/core/app/overlays.ts`, and the
+inventory screen asks core for it by screen id. Core is the only assembly point,
+and the same test pins which core files are allowed to reach into an addon.
+
+Charts are the other enforced boundary. No addon imports `recharts`; charts go
+through `src/core/components/charts`, which owns the axis and legend rules. ESLint
+blocks the import from `src/addons/**`, and blocks `yAxisId` and
+`orientation="right"` inside the chart layer, because the design system forbids a
+dual-axis chart and Recharts makes one a two-line change.
+
+Controls that would write data render visibly inert rather than looking live — see
+the unwired convention in `docs/design/design-system.md`. Remove the prop when the
+endpoint behind the control exists; `src/core/app/unwired.test.tsx` checks every
+screen, so wiring one up without removing it fails rather than passing quietly.
