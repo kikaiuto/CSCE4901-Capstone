@@ -4,6 +4,7 @@ import { createMemoryRouter, Outlet, RouterProvider } from 'react-router'
 
 export interface RenderWithRouterOptions {
   path?: string
+  routePath?: string
   extraRoutes?: { path: string; element: ReactElement }[]
   outletContext?: unknown
 }
@@ -14,13 +15,14 @@ function ContextOutlet({ context }: { context: unknown }) {
 
 export function renderWithRouter(element: ReactElement, options: RenderWithRouterOptions = {}) {
   const path = options.path ?? '/'
+  const routePath = options.routePath ?? path
 
   const leaf =
     options.outletContext === undefined
-      ? { path, element }
+      ? { path: routePath, element }
       : {
           element: <ContextOutlet context={options.outletContext} />,
-          children: [{ path, element }],
+          children: [{ path: routePath, element }],
         }
 
   const router = createMemoryRouter([leaf, ...(options.extraRoutes ?? [])], {

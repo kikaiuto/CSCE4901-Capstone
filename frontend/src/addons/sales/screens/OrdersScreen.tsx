@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button } from '@/core/components/ui/Button'
+import { EmptyState } from '@/core/components/ui/EmptyState'
+import { PageHeader } from '@/core/components/ui/PageHeader'
 import { BulkAction, BulkBar } from '@/core/components/ui/BulkBar'
 import { Checkbox } from '@/core/components/ui/Checkbox'
 import { Figure } from '@/core/components/ui/Figure'
@@ -37,15 +39,14 @@ export function OrdersScreen() {
 
   return (
     <div className={cn(fresh && 'rise', 'mx-auto max-w-6xl pb-24')}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="section-label">Sales</p>
-          <h1 className="display mt-3 text-3xl">Orders</h1>
-        </div>
-        <Button variant="primary" shortcut="N" unwired>
-          New order
-        </Button>
-      </div>
+      <PageHeader
+        title="Orders"
+        actions={
+          <Button variant="primary" shortcut="N" unwired>
+            New order
+          </Button>
+        }
+      />
 
       <Tabs items={TABS} active={filter} onChange={setFilter} className="mt-6" />
 
@@ -118,9 +119,7 @@ export function OrdersScreen() {
       </Table>
 
       {rows.length === 0 && (
-        <p className="py-16 text-center text-base text-ink-muted">
-          No orders in this stage.
-        </p>
+        <EmptyState title="No orders here" detail="Nothing matches this stage." />
       )}
 
       <BulkBar count={selection.count} onDismiss={selection.clear}>
