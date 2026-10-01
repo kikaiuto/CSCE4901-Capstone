@@ -33,7 +33,7 @@ export function MetricStrip({ fresh = false }: MetricStripProps) {
           style={fresh ? riseAt(index + 3) : undefined}
         >
           <dt className="section-label">{metric.label}</dt>
-          <dd className="flex items-baseline gap-2.5">
+          <dd className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
             <Figure
               value={metric.value}
               kind={metric.kind}
