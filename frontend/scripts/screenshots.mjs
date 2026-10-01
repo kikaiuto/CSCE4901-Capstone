@@ -1,4 +1,3 @@
-import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 
 const BASE = process.argv[2] ?? 'http://localhost:5173'
@@ -16,6 +15,31 @@ const ROUTES = [
   ['accounting-pl', '/accounting/reports/profit-loss'],
   ['admin-people', '/admin/people'],
 ]
+
+let chromium
+
+try {
+  ;({ chromium } = await import('playwright'))
+} catch {
+  console.error(
+    'This script needs Playwright, which is not a dependency of this project.\n' +
+      'Install it when you want a visual pass, then remove it again:\n\n' +
+      '  npm install --no-save playwright && npx playwright install chromium\n' +
+      '  npm run dev\n' +
+      '  npm run screenshots\n',
+  )
+  process.exit(1)
+}
+
+const reachable = await fetch(BASE).then(
+  () => true,
+  () => false,
+)
+
+if (!reachable) {
+  console.error(`Nothing is serving at ${BASE}. Start it with "npm run dev" first.`)
+  process.exit(1)
+}
 
 mkdirSync(OUT, { recursive: true })
 
@@ -50,7 +74,6 @@ for (const theme of ['dark', 'light']) {
       const body = getComputedStyle(document.body)
       return {
         bg: body.backgroundColor,
-        color: body.color,
         font: body.fontFamily.split(',')[0],
         theme: document.documentElement.dataset.theme ?? 'dark',
         text: (document.body.innerText || '').slice(0, 60).replace(/\s+/g, ' '),
@@ -70,5 +93,8 @@ for (const theme of ['dark', 'light']) {
 
 await browser.close()
 
-console.log('\n--- problems ---')
+console.log(`\nwrote ${ROUTES.length * 2} screenshots to ${OUT}`)
+console.log('--- problems ---')
 console.log(problems.length ? problems.join('\n') : 'none')
+
+if (problems.length) process.exit(1)
