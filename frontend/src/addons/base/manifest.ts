@@ -6,7 +6,7 @@ export const manifest: AddonManifest = {
   screens: ['S-01', 'S-09'],
   nav: {
     label: 'Admin',
-    icon: 'admin',
+    icon: 'people',
     to: '/admin',
     group: 'admin',
     sequence: 60,
