@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'sales',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'sales',
   label: 'Sales',
   icon: 'sales',
-  track: 'SLS',
-  screens: ['S-03 Sales orders', 'S-04 Sales order detail'],
-  nav: {
-    group: 'operations',
-    to: '/sales',
-  },
-  queueGroups: ['confirm', 'fix'],
+  to: '/sales',
+  group: 'operations',
+  sequence: 20,
+  screens: ['S-03', 'S-04'],
 }

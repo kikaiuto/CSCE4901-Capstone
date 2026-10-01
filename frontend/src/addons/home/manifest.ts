@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'home',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'home',
   label: 'Home',
   icon: 'home',
-  track: 'AIX',
-  screens: ['S-02 Home (Today)'],
-  nav: {
-    group: 'top',
-    to: '/home',
-  },
-  queueGroups: [],
+  to: '/home',
+  group: 'primary',
+  sequence: 10,
+  screens: ['S-02'],
 }

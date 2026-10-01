@@ -5,10 +5,16 @@ import { renderWithRouter } from '@/core/test/renderWithRouter'
 import { AppShell } from './AppShell'
 
 describe('AppShell', () => {
-  it('shows the sidebar', () => {
+  it('shows the module rail', () => {
     renderWithRouter(<AppShell />)
 
     expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
+  })
+
+  it('offers a skip link as the first stop for the keyboard', () => {
+    renderWithRouter(<AppShell />)
+
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toBeInTheDocument()
   })
 
   it('keeps the command bar closed until it is asked for', () => {
@@ -42,10 +48,10 @@ describe('AppShell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('opens the command bar from the sidebar search button', async () => {
+  it('opens the command bar from the module bar search affordance', async () => {
     renderWithRouter(<AppShell />)
 
-    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Search or ask' }))
 
     expect(screen.getByRole('dialog', { name: 'Command bar' })).toBeInTheDocument()
   })

@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'base',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'base',
   label: 'Admin',
   icon: 'admin',
-  track: 'PLT',
-  screens: ['S-01 Sign in', 'S-09 People and roles'],
-  nav: {
-    group: 'admin',
-    to: '/admin',
-  },
-  queueGroups: [],
+  to: '/admin',
+  group: 'admin',
+  sequence: 60,
+  screens: ['S-01', 'S-09'],
 }

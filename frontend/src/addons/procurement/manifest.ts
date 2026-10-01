@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'procurement',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'procurement',
   label: 'Procurement',
   icon: 'procurement',
-  track: 'INV',
-  screens: ['S-06 Receive purchase order'],
-  nav: {
-    group: 'operations',
-    to: '/procurement',
-  },
-  queueGroups: ['receive'],
+  to: '/procurement',
+  group: 'operations',
+  sequence: 40,
+  screens: ['S-06'],
 }

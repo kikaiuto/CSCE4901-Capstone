@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { Button } from '@/core/components/ui/Button'
 import { Field } from '@/core/components/ui/Field'
 
-const MODULES = ['Sales', 'Inventory', 'Procurement', 'Accounting']
+import { operationLabels } from '@/core/app/registry'
 
 export function SignInScreen() {
   const navigate = useNavigate()
@@ -76,7 +76,7 @@ export function SignInScreen() {
             </div>
 
             <p className="mt-7 border-t border-line pt-5 text-center text-base text-ink-faint">
-              {MODULES.join(' · ')}
+              {operationLabels.join(' · ')}
             </p>
           </div>
         </div>

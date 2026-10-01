@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'accounting',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'accounting',
   label: 'Accounting',
   icon: 'accounting',
-  track: 'ACC',
-  screens: ['S-07 Journal entry', 'S-10 Profit and loss report'],
-  nav: {
-    group: 'operations',
-    to: '/accounting',
-  },
-  queueGroups: ['fix'],
+  to: '/accounting',
+  group: 'operations',
+  sequence: 50,
+  screens: ['S-07', 'S-10'],
 }
