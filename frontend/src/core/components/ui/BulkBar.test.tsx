@@ -14,6 +14,44 @@ describe('BulkBar', () => {
     expect(screen.queryByText('Confirm')).not.toBeInTheDocument()
   })
 
+  it('clears the selection when Escape is pressed', async () => {
+    const user = userEvent.setup()
+    const onDismiss = vi.fn()
+    render(
+      <BulkBar count={2} onDismiss={onDismiss}>
+        <BulkAction>Confirm</BulkAction>
+      </BulkBar>,
+    )
+
+    await user.keyboard('{Escape}')
+
+    expect(onDismiss).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not listen for Escape while nothing is selected', async () => {
+    const user = userEvent.setup()
+    const onDismiss = vi.fn()
+    render(
+      <BulkBar count={0} onDismiss={onDismiss}>
+        <BulkAction>Confirm</BulkAction>
+      </BulkBar>,
+    )
+
+    await user.keyboard('{Escape}')
+
+    expect(onDismiss).not.toHaveBeenCalled()
+  })
+
+  it('exposes the bar as a named region', () => {
+    render(
+      <BulkBar count={1} onDismiss={vi.fn()}>
+        <BulkAction>Confirm</BulkAction>
+      </BulkBar>,
+    )
+
+    expect(screen.getByRole('region', { name: 'Selection' })).toBeInTheDocument()
+  })
+
   it('reports how many rows are selected', () => {
     render(
       <BulkBar count={2} onDismiss={vi.fn()}>

@@ -1,10 +1,20 @@
+@import '@fontsource-variable/inter/opsz.css';
+@import '@fontsource-variable/jetbrains-mono';
 @import 'tailwindcss';
 @import './theme.css';
+@import './palette.css';
+
+@property --rise-index {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
 
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-optical-sizing: auto;
   }
 
   body {
@@ -35,21 +45,23 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
 
 @utility figure {
   font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'zero' 1;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 
 @utility display {
-  font-family: var(--font-serif);
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 600;
   letter-spacing: var(--tracking-display);
 }
 
@@ -63,6 +75,9 @@
   color: var(--color-ink-faint);
 }
 
-@utility stagger-* {
-  animation-delay: calc(--value(integer) * 60ms);
+@utility rise {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: rise 420ms var(--ease-out-soft) both;
+    animation-delay: calc(var(--rise-index) * 45ms);
+  }
 }

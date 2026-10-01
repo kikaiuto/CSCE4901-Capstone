@@ -1,6 +1,9 @@
 import { useOutletContext } from 'react-router'
 import { longDate } from '@/core/lib/date'
 import { countOf } from '@/core/lib/text'
+import { riseAt } from '@/core/lib/motion'
+import { cn } from '@/core/lib/cn'
+import { useFirstVisit } from '@/core/lib/useFirstVisit'
 import { queue, queueCount } from '@/addons/home/fixtures/queue'
 import { currentUser, today } from '@/addons/base/fixtures/org'
 import { note } from '@/addons/home/fixtures/metrics'
@@ -22,35 +25,42 @@ function greeting(): string {
 export function TodayScreen() {
   const { openCommandBar } = useOutletContext<ShellContext>()
   const firstName = currentUser.name.split(' ')[0]
+  const fresh = useFirstVisit('home')
 
   return (
     <div className="mx-auto max-w-3xl">
-      <header className="animate-rise">
+      <header className={cn(fresh && 'rise')}>
         <p className="section-label">Today · {longDate(today)}</p>
         <h1 className="display mt-5 text-display">
           {greeting()}, {firstName}
         </h1>
-        <p className="animate-rise stagger-1 mt-3 max-w-md text-lg text-ink-muted">
+        <p
+          className={cn(fresh && 'rise', 'mt-3 max-w-md text-lg text-ink-muted')}
+          style={fresh ? riseAt(1) : undefined}
+        >
           {countOf(queueCount, 'thing')} {queueCount === 1 ? 'needs' : 'need'} you. Nothing
           is overdue.
         </p>
       </header>
 
-      <div className="animate-rise stagger-2 mt-9">
+      <div className={cn(fresh && 'rise', 'mt-9')} style={fresh ? riseAt(2) : undefined}>
         <AskLine onOpen={openCommandBar} />
       </div>
 
       <div className="mt-9">
-        <MetricStrip />
+        <MetricStrip fresh={fresh} />
       </div>
 
-      <p className="animate-rise stagger-6 mt-7 border-l-2 border-accent pl-4 text-md text-ink-muted">
+      <p
+        className={cn(fresh && 'rise', 'mt-7 border-l-2 border-accent pl-4 text-md text-ink-muted')}
+        style={fresh ? riseAt(6) : undefined}
+      >
         {note}
       </p>
 
       <div className="mt-12 flex flex-col gap-11">
         {queue.map((group, index) => (
-          <QueueGroup key={group.id} group={group} index={index} />
+          <QueueGroup key={group.id} group={group} index={index} fresh={fresh} />
         ))}
       </div>
     </div>

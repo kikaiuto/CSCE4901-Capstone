@@ -30,7 +30,7 @@ export function SignInScreen() {
         </div>
 
         <div className="flex justify-center px-gutter pt-16">
-          <div className="animate-rise w-full max-w-[26rem] rounded-card border border-line bg-surface p-9">
+          <div className="rise w-full max-w-[26rem] rounded-card border border-line bg-surface p-9">
             <h1 className="display text-3xl">Sign in</h1>
             <p className="mt-2 text-md text-ink-muted">Use your work email.</p>
 

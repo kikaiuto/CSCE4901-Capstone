@@ -8,6 +8,8 @@ import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
 import { Tabs, type TabItem } from '@/core/components/ui/Tabs'
 import { useSelection } from '@/core/lib/useSelection'
+import { cn } from '@/core/lib/cn'
+import { useFirstVisit } from '@/core/lib/useFirstVisit'
 import { countOf } from '@/core/lib/text'
 import { orderTotals, salesOrders, statusCounts, type OrderStatus } from '@/addons/sales/fixtures/orders'
 
@@ -31,9 +33,10 @@ export function OrdersScreen() {
 
   const ids = useMemo(() => rows.map((order) => order.id), [rows])
   const selection = useSelection(ids)
+  const fresh = useFirstVisit('sales/orders')
 
   return (
-    <div className="animate-rise mx-auto max-w-6xl pb-24">
+    <div className={cn(fresh && 'rise', 'mx-auto max-w-6xl pb-24')}>
       <div className="flex items-start justify-between">
         <div>
           <p className="section-label">Sales</p>

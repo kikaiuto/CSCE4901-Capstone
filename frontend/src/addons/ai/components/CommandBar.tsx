@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
+import { cn } from '@/core/lib/cn'
+import { usePresence } from '@/core/lib/usePresence'
 import { Icon } from '@/core/components/ui/Icon'
 import { Kbd } from '@/core/components/ui/Kbd'
 import { SectionLabel } from '@/core/components/ui/Card'
@@ -32,13 +34,19 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
   }, [open, onClose, reset])
 
   const navigate = useNavigate()
+  const { mounted, state } = usePresence(open, 140)
 
-  if (!open) return null
+  if (!mounted) return null
 
   const asking = ask.question.trim().length > 0
 
   return (
-    <div className="animate-fade fixed inset-0 z-50 flex justify-center bg-ink/20 pt-[12vh] backdrop-blur-[2px]">
+    <div
+      className={cn(
+        'fixed inset-0 z-50 flex justify-center bg-scrim pt-[12vh] backdrop-blur-[2px]',
+        state === 'open' ? 'animate-fade' : 'animate-fade-out',
+      )}
+    >
       <button
         type="button"
         aria-label="Close the command bar"
@@ -48,8 +56,12 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
 
       <div
         role="dialog"
+        aria-modal="true"
         aria-label="Command bar"
-        className="animate-scale-in relative flex max-h-[76vh] w-full max-w-2xl flex-col overflow-hidden rounded-card border border-line bg-surface shadow-overlay"
+        className={cn(
+          'relative flex max-h-[76vh] w-full max-w-2xl flex-col overflow-hidden rounded-card border border-line bg-surface shadow-overlay',
+          state === 'open' ? 'animate-scale-in' : 'animate-scale-out',
+        )}
       >
         <div className="flex shrink-0 items-center gap-2.5 border-b border-line px-4">
           {asking ? (

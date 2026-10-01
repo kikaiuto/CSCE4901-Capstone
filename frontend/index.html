@@ -9,12 +9,14 @@
       content="Sector 7 is a small-business ERP. It tracks sales orders, stock, and purchase orders, and keeps the books in step with them."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      try {
+        if (localStorage.getItem('s7-theme') === 'light') {
+          document.documentElement.dataset.theme = 'light'
+        }
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

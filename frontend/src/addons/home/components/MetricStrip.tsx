@@ -1,5 +1,7 @@
 import { Figure } from '@/core/components/ui/Figure'
 import type { FigureKind } from '@/core/components/ui/Figure'
+import { riseAt } from '@/core/lib/motion'
+import { cn } from '@/core/lib/cn'
 
 interface Metric {
   label: string
@@ -17,13 +19,18 @@ const METRICS: Metric[] = [
   { label: 'Receivables', value: '12940', kind: 'decimal', places: 0, delta: '-2.3', deltaKind: 'percent' },
 ]
 
-export function MetricStrip() {
+export interface MetricStripProps {
+  fresh?: boolean
+}
+
+export function MetricStrip({ fresh = false }: MetricStripProps) {
   return (
     <dl className="grid grid-cols-2 gap-x-10 gap-y-7 border-y border-line py-7 sm:grid-cols-4">
       {METRICS.map((metric, index) => (
         <div
           key={metric.label}
-          className={`animate-rise stagger-${index + 3} flex flex-col gap-1.5`}
+          className={cn(fresh && 'rise', 'flex flex-col gap-1.5')}
+          style={fresh ? riseAt(index + 3) : undefined}
         >
           <dt className="section-label">{metric.label}</dt>
           <dd className="flex items-baseline gap-2.5">

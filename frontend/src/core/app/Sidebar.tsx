@@ -2,6 +2,7 @@ import { NavLink } from 'react-router'
 import { cn } from '@/core/lib/cn'
 import { Icon, type IconName } from '@/core/components/ui/Icon'
 import { Kbd } from '@/core/components/ui/Kbd'
+import { ThemeToggle } from '@/core/components/ui/ThemeToggle'
 import { initials } from '@/core/lib/text'
 import { currentUser, organization } from '@/addons/base/fixtures/org'
 
@@ -81,6 +82,8 @@ export function Sidebar({ onOpenCommandBar }: SidebarProps) {
 
       <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-3">
         <Item item={{ to: '/admin', label: 'Admin', icon: 'admin' }} />
+
+        <ThemeToggle className="ml-1.5" />
 
         <button
           type="button"

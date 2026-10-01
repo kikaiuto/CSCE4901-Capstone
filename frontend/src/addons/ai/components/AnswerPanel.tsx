@@ -82,7 +82,7 @@ export interface AnswerPanelProps {
 
 export function AnswerPanel({ answer, compact = false }: AnswerPanelProps) {
   return (
-    <div className="animate-rise flex flex-col gap-5">
+    <div className="rise flex flex-col gap-5">
       <ToolCalls answer={answer} />
 
       <p className={compact ? 'text-md' : 'display text-xl'}>{answer.summary}</p>

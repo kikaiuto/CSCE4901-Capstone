@@ -12,8 +12,10 @@ export type IconName =
   | 'check'
   | 'arrow-right'
   | 'chevron'
+  | 'sun'
+  | 'moon'
 
-const PATHS: Record<IconName, string> = {
+const PATHS: Record<IconName, string | readonly string[]> = {
   home: 'M2.5 6.5 8 2.5l5.5 4v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z',
   sparkle: 'M8 2.2 9.4 6.6 13.8 8 9.4 9.4 8 13.8 6.6 9.4 2.2 8 6.6 6.6z',
   sales: 'M3.5 2.5h9v11l-1.8-1.2-1.8 1.2-1.9-1.2-1.8 1.2-1.7-1.2zM5.8 6h4.4M5.8 8.6h4.4',
@@ -25,6 +27,11 @@ const PATHS: Record<IconName, string> = {
   check: 'M3 8.4 6.2 11.6 13 4.8',
   'arrow-right': 'M3 8h10M9.2 4.2 13 8l-3.8 3.8',
   chevron: 'M4.5 6.5 8 10l3.5-3.5',
+  sun: [
+    'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+    'M8 1.4v1.4M8 13.2v1.4M1.4 8h1.4M13.2 8h1.4M3.3 3.3l1 1M11.7 11.7l1 1M12.7 3.3l-1 1M4.3 11.7l-1 1',
+  ],
+  moon: 'M13.4 9.7A5.9 5.9 0 0 1 6.3 2.6a5.9 5.9 0 1 0 7.1 7.1',
 }
 
 export interface IconProps {
@@ -44,7 +51,9 @@ export function Icon({ name, className }: IconProps) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d={PATHS[name]} />
+      {(typeof PATHS[name] === 'string' ? [PATHS[name]] : PATHS[name]).map((d) => (
+        <path key={d} d={d} />
+      ))}
     </svg>
   )
 }
