@@ -386,5 +386,22 @@ screen contains and are no longer the authority on chrome or color.
   route and no Ask page component; the assistant is reachable through ⌘K and the Home ask
   line only. Either build it or cut the claim before submission.
 - S-04 sales order detail is still a placeholder.
-- No screen has been checked in a browser against the wireframes. Everything is verified
-  by test and by build, which catches structure and not appearance.
+
+### Checking it visually
+
+All ten screens were captured in both themes at 1280×800 on 2026-10-01, with no console
+or page errors. `frontend/scripts/screenshots.mjs` repeats the pass and fails on any
+error it finds. Playwright is deliberately not a dependency; the script prints the
+install line when it is missing:
+
+```
+npm install --no-save playwright && npx playwright install chromium
+npm run dev
+npm run screenshots
+```
+
+That pass is worth running after any change to the shell, the palette or a chart. It
+found two things a green test suite was happy to ship: the Admin rail icon was a gear,
+which at 20px is the same shape as the sun on the theme toggle directly beneath it, and
+the Home metric strip overflowed its column so revenue's delta ran into the next figure.
+Tests check structure. They do not look at the page.
