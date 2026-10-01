@@ -59,3 +59,32 @@ export function money(value: string, options: FormatOptions = {}): string {
 
   return `${prefix(negative, options.sign ?? 'auto')}$${magnitude}`
 }
+
+const UNITS = [
+  { limit: 1_000_000_000, suffix: 'B' },
+  { limit: 1_000_000, suffix: 'M' },
+  { limit: 1_000, suffix: 'K' },
+]
+
+export function compact(value: string): string {
+  const { negative, whole } = parseDecimal(value)
+  const magnitude = Number(whole)
+  const sign = negative ? '-' : ''
+
+  if (!Number.isFinite(magnitude)) return '0'
+
+  for (const { limit, suffix } of UNITS) {
+    if (magnitude >= limit) {
+      const scaled = magnitude / limit
+      const rendered = scaled >= 100 ? Math.round(scaled).toString() : scaled.toFixed(1)
+      return `${sign}${rendered.replace(/\.0$/, '')}${suffix}`
+    }
+  }
+
+  return `${sign}${groupThousands(String(magnitude))}`
+}
+
+export function compactMoney(value: string): string {
+  const { negative } = parseDecimal(value)
+  return `${negative ? '-' : ''}$${compact(value).replace('-', '')}`
+}

@@ -28,4 +28,39 @@ export default tseslint.config(
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    files: ['src/addons/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'recharts',
+              message:
+                'Charts go through src/core/components/charts, which owns the axis and legend rules.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/core/components/charts/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'JSXAttribute[name.name="yAxisId"]',
+          message:
+            'A second y-axis is a dual-axis chart, which the design system forbids. Use two stacked charts.',
+        },
+        {
+          selector: 'JSXAttribute[name.name="orientation"][value.value="right"]',
+          message:
+            'A right-hand axis is a dual-axis chart, which the design system forbids. Use two stacked charts.',
+        },
+      ],
+    },
+  },
 )
