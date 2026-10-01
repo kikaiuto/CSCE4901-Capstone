@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import {
+  Area,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -17,6 +17,13 @@ export interface StockPoint {
   [key: string]: string | number | undefined
 }
 
+export interface OverlaySpec {
+  valueKey: string
+  bandKey: string
+  color: string
+  bandColor: string
+}
+
 export interface StepAreaChartProps {
   data: StockPoint[]
   color: string
@@ -27,7 +34,7 @@ export interface StepAreaChartProps {
   riskFrom?: string
   riskTo?: string
   riskColor?: string
-  overlay?: ReactNode
+  overlay?: OverlaySpec
   onActiveIndexChange?: (index: number | null) => void
 }
 
@@ -87,9 +94,30 @@ export function StepAreaChart({
 
         {todayLabel && <ReferenceLine x={todayLabel} stroke="var(--color-line-strong)" strokeDasharray="2 3" />}
 
+        {overlay && (
+          <Area
+            type="monotone"
+            dataKey={overlay.bandKey}
+            stroke="none"
+            fill={overlay.bandColor}
+            fillOpacity={0.18}
+            isAnimationActive={false}
+          />
+        )}
+
         <Line type="stepAfter" dataKey="onHand" stroke={color} strokeWidth={2} dot={false} />
 
-        {overlay}
+        {overlay && (
+          <Line
+            type="monotone"
+            dataKey={overlay.valueKey}
+            stroke={overlay.color}
+            strokeWidth={2}
+            strokeDasharray="4 3"
+            dot={false}
+            isAnimationActive={false}
+          />
+        )}
       </ComposedChart>
     </ResponsiveContainer>
   )

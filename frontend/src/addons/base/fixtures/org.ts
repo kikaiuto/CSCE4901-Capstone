@@ -3,11 +3,22 @@ export interface Organization {
   name: string
 }
 
+export const ROLES = [
+  'Owner',
+  'Admin',
+  'Sales',
+  'Inventory',
+  'Purchasing',
+  'Accounting',
+] as const
+
+export type Role = (typeof ROLES)[number]
+
 export interface CurrentUser {
   id: string
   name: string
   email: string
-  role: 'Owner' | 'Admin' | 'Sales' | 'Warehouse'
+  role: Role
 }
 
 export const organization: Organization = {

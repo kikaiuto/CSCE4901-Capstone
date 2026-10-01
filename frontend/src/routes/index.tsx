@@ -1,9 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { AppShell } from '@/core/app/AppShell'
-import { Placeholder } from '@/core/app/Placeholder'
 import { SignInScreen } from '@/addons/base/screens/SignInScreen'
 import { TodayScreen } from '@/addons/home/screens/TodayScreen'
 import { OrdersScreen } from '@/addons/sales/screens/OrdersScreen'
+import { ProductsScreen } from '@/addons/inventory/screens/ProductsScreen'
+import { PurchaseOrdersScreen } from '@/addons/procurement/screens/PurchaseOrdersScreen'
+import { PeopleScreen } from '@/addons/base/screens/PeopleScreen'
+import { ReceiveScreen } from '@/addons/procurement/screens/ReceiveScreen'
+import { JournalScreen } from '@/addons/accounting/screens/JournalScreen'
 
 export const router = createBrowserRouter([
   { path: '/', element: <SignInScreen /> },
@@ -24,30 +28,44 @@ export const router = createBrowserRouter([
       { path: '/inventory', element: <Navigate to="/inventory/products" replace /> },
       {
         path: '/inventory/products',
-        element: <Placeholder module="Inventory" screens={['S-05 Product and stock ledger']} />,
+        element: <ProductsScreen />,
         handle: { crumb: 'Products', view: 'list' },
+      },
+      {
+        path: '/inventory/products/:sku',
+        lazy: async () => ({
+          Component: (await import('@/addons/inventory/screens/ProductScreen')).ProductScreen,
+        }),
+        handle: { crumb: (params: { sku?: string }) => params.sku ?? '', view: 'record' },
       },
       { path: '/procurement', element: <Navigate to="/procurement/orders" replace /> },
       {
         path: '/procurement/orders',
-        element: <Placeholder module="Procurement" screens={['S-06 Receive purchase order']} />,
+        element: <PurchaseOrdersScreen />,
         handle: { crumb: 'Purchase orders', view: 'list' },
+      },
+      {
+        path: '/procurement/orders/:id',
+        element: <ReceiveScreen />,
+        handle: { crumb: (params: { id?: string }) => params.id ?? '', view: 'record' },
       },
       { path: '/accounting', element: <Navigate to="/accounting/journal" replace /> },
       {
         path: '/accounting/journal',
-        element: <Placeholder module="Accounting" screens={['S-07 Journal entry']} />,
+        element: <JournalScreen />,
         handle: { crumb: 'Journal', view: 'record' },
       },
       {
         path: '/accounting/reports/profit-loss',
-        element: <Placeholder module="Accounting" screens={['S-10 Profit and loss report']} />,
+        lazy: async () => ({
+          Component: (await import('@/addons/accounting/screens/ProfitLossScreen')).ProfitLossScreen,
+        }),
         handle: { crumb: 'Profit and loss', view: 'report' },
       },
       { path: '/admin', element: <Navigate to="/admin/people" replace /> },
       {
         path: '/admin/people',
-        element: <Placeholder module="Admin" screens={['S-09 People and roles']} />,
+        element: <PeopleScreen />,
         handle: { crumb: 'People and roles', view: 'list' },
       },
       { path: '*', element: <Navigate to="/home" replace /> },
