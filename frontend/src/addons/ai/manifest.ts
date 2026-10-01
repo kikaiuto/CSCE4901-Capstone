@@ -1,12 +1,7 @@
-export const manifest = {
-  id: 'ai',
-  label: 'Ask',
-  icon: 'sparkle',
-  track: 'AIX',
-  screens: ['S-08 Command bar with AI'],
-  nav: {
-    group: 'top',
-    to: '/ask',
-  },
-  queueGroups: [],
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'ai',
+  depends: ['base'],
+  screens: ['S-08'],
 }

@@ -1,9 +1,7 @@
-export const manifest = {
-  id: 'forecasting',
-  label: 'Forecasting',
-  icon: 'inventory',
-  track: 'AIX',
-  screens: ['S-05 Product and stock ledger'],
-  nav: null,
-  queueGroups: [],
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'forecasting',
+  depends: ['base', 'sales', 'inventory'],
+  screens: ['S-05'],
 }
