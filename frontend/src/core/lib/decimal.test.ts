@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decimal, money, parseDecimal, percent, quantity } from './decimal'
+import { compact, compactMoney, decimal, money, parseDecimal, percent, quantity } from './decimal'
 
 describe('parseDecimal', () => {
   it('splits an unsigned value', () => {
@@ -116,5 +116,31 @@ describe('percent', () => {
 
   it('signs a negative change once', () => {
     expect(percent('-2.3', { sign: 'always' })).toBe('-2.3%')
+  })
+})
+
+describe('compact', () => {
+  it('leaves values below a thousand alone', () => {
+    expect(compact('0')).toBe('0')
+    expect(compact('948')).toBe('948')
+  })
+
+  it('shortens thousands, millions and billions', () => {
+    expect(compact('1000')).toBe('1K')
+    expect(compact('12700')).toBe('12.7K')
+    expect(compact('127800')).toBe('128K')
+    expect(compact('2500000')).toBe('2.5M')
+    expect(compact('3000000000')).toBe('3B')
+  })
+
+  it('keeps the sign', () => {
+    expect(compact('-12700')).toBe('-12.7K')
+  })
+})
+
+describe('compactMoney', () => {
+  it('puts the currency mark outside the sign', () => {
+    expect(compactMoney('127800')).toBe('$128K')
+    expect(compactMoney('-2300')).toBe('-$2.3K')
   })
 })
