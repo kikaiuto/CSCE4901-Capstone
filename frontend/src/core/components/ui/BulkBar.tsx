@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { cn } from '@/core/lib/cn'
+import { usePresence } from '@/core/lib/usePresence'
 import { Kbd } from './Kbd'
 
 export interface BulkActionProps {
@@ -18,8 +19,8 @@ export function BulkAction({ unwired = false, onClick, children }: BulkActionPro
       className={cn(
         'inline-flex h-8 items-center gap-1.5 rounded-control px-3 text-base font-medium transition-colors',
         unwired
-          ? 'border border-dashed border-white/25 text-white/45'
-          : 'bg-white text-ink hover:bg-white/90',
+          ? 'border border-dashed border-panel-line text-panel-ink-muted'
+          : 'bg-panel-ink text-panel hover:bg-panel-ink/90',
       )}
     >
       {unwired && <span aria-hidden="true">✕</span>}
@@ -35,15 +36,36 @@ export interface BulkBarProps {
 }
 
 export function BulkBar({ count, onDismiss, children }: BulkBarProps) {
-  if (count === 0) return null
+  const active = count > 0
+  const { mounted, state } = usePresence(active, 140)
+
+  useEffect(() => {
+    if (!active) return
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onDismiss()
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [active, onDismiss])
+
+  if (!mounted) return null
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-8 z-20 flex justify-center">
-      <div className="pointer-events-auto flex items-center gap-3 rounded-card bg-ink py-2.5 pr-2.5 pl-4 shadow-float">
-        <span className="text-base text-white/80">
+      <div
+        role="region"
+        aria-label="Selection"
+        className={cn(
+          'pointer-events-auto flex items-center gap-3 rounded-card bg-panel py-2.5 pr-2.5 pl-4 shadow-float',
+          state === 'open' ? 'animate-lift' : 'animate-drop',
+        )}
+      >
+        <span className="text-base text-panel-ink-muted">
           <span className="figure">{count}</span> selected
         </span>
-        <span className="h-5 w-px bg-white/20" />
+        <span className="h-5 w-px bg-panel-line" />
         {children}
         <button
           type="button"

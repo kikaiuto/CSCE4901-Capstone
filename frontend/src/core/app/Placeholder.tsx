@@ -1,11 +1,16 @@
+import { cn } from '@/core/lib/cn'
+import { useFirstVisit } from '@/core/lib/useFirstVisit'
+
 export interface PlaceholderProps {
   module: string
   screens: string[]
 }
 
 export function Placeholder({ module, screens }: PlaceholderProps) {
+  const fresh = useFirstVisit(`placeholder:${module}`)
+
   return (
-    <div className="animate-rise mx-auto max-w-xl py-20">
+    <div className={cn(fresh && 'rise', 'mx-auto max-w-xl py-20')}>
       <h1 className="display text-3xl">{module}</h1>
       <p className="mt-4 text-lg text-ink-muted">
         This part isn't built yet. It's drawn in the design doc and comes next.

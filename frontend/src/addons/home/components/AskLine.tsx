@@ -10,7 +10,7 @@ export function AskLine({ onOpen }: AskLineProps) {
     <button
       type="button"
       onClick={onOpen}
-      className="group flex w-full items-center gap-3 rounded-card border border-line bg-surface px-4 py-3.5 text-left transition-all duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgb(22_21_15_/_0.04)]"
+      className="group flex w-full items-center gap-3 rounded-card border border-line bg-surface px-4 py-3.5 text-left transition-colors duration-140 hover:border-line-strong hover:bg-raised"
     >
       <Icon name="sparkle" className="text-accent transition-transform duration-300 group-hover:rotate-90" />
       <span className="flex-1 text-md text-ink-faint">

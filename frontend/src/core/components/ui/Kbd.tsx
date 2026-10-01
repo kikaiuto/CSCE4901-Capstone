@@ -11,7 +11,7 @@ export interface KbdProps {
 
 const TONES: Record<KbdTone, string> = {
   default: 'border-line-strong bg-surface text-ink-muted',
-  inverse: 'border-white/35 bg-white/15 text-ink-inverse',
+  inverse: 'border-current/35 bg-current/15',
   muted: 'border-line-strong bg-transparent text-ink-faint',
 }
 

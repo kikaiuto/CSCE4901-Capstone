@@ -1,6 +1,8 @@
 import { Button } from '@/core/components/ui/Button'
 import { Figure } from '@/core/components/ui/Figure'
 import type { QueueGroup as QueueGroupData, QueueItem } from '@/addons/home/fixtures/queue'
+import { riseAt } from '@/core/lib/motion'
+import { cn } from '@/core/lib/cn'
 
 function Row({ item }: { item: QueueItem }) {
   return (
@@ -42,11 +44,12 @@ function Row({ item }: { item: QueueItem }) {
 export interface QueueGroupProps {
   group: QueueGroupData
   index: number
+  fresh?: boolean
 }
 
-export function QueueGroup({ group, index }: QueueGroupProps) {
+export function QueueGroup({ group, index, fresh = false }: QueueGroupProps) {
   return (
-    <section className={`animate-rise stagger-${index + 7}`}>
+    <section className={cn(fresh && 'rise')} style={fresh ? riseAt(index + 7) : undefined}>
       <div className="flex items-baseline justify-between border-b border-line pb-2">
         <h2 className="section-label">{group.label}</h2>
         <span className="figure text-micro text-ink-faint">{group.items.length}</span>

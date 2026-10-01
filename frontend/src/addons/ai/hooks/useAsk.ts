@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { answers, type AiAnswer } from '@/addons/ai/fixtures/ai'
 
 function match(question: string): AiAnswer {
@@ -28,6 +28,11 @@ export function useAsk(): Ask {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState<AiAnswer | null>(null)
   const [pending, setPending] = useState(false)
+  const timer = useRef<number | undefined>(undefined)
+
+  useEffect(() => {
+    return () => window.clearTimeout(timer.current)
+  }, [])
 
   const submit = useCallback(
     (override?: string) => {
@@ -38,7 +43,8 @@ export function useAsk(): Ask {
       setPending(true)
       setAnswer(null)
 
-      window.setTimeout(() => {
+      window.clearTimeout(timer.current)
+      timer.current = window.setTimeout(() => {
         setAnswer(match(asked))
         setPending(false)
       }, 550)
@@ -47,6 +53,7 @@ export function useAsk(): Ask {
   )
 
   const reset = useCallback(() => {
+    window.clearTimeout(timer.current)
     setQuestion('')
     setAnswer(null)
     setPending(false)

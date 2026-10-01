@@ -1,0 +1,93 @@
+:root {
+  color-scheme: dark;
+
+  --t-canvas: #0a0a0c;
+  --t-surface: #111114;
+  --t-raised: #1a1a1f;
+  --t-line: #232329;
+  --t-line-strong: #33333b;
+
+  --t-ink: #ececf1;
+  --t-ink-muted: #9c9ca8;
+  --t-ink-faint: #82828e;
+  --t-ink-ghost: #4a4a55;
+  --t-ink-inverse: #0a0a0c;
+
+  --t-scrim: rgb(0 0 0 / 0.66);
+
+  --t-accent: #6e8bff;
+  --t-accent-hover: #89a0ff;
+  --t-accent-soft: #161a2c;
+  --t-accent-line: #2f3b6e;
+
+  --t-positive: #4fc48c;
+  --t-positive-soft: #0e2018;
+  --t-negative: #ff7070;
+  --t-negative-soft: #2a1416;
+  --t-pending: #e2a63c;
+  --t-pending-soft: #241b0b;
+
+  --t-emphasis: #ececf1;
+  --t-emphasis-ink: #0a0a0c;
+
+  --t-panel: #1e1e24;
+  --t-panel-ink: #ececf1;
+  --t-panel-ink-muted: #a0a0ac;
+  --t-panel-line: #34343d;
+
+  --t-chart-current: #e6e6ec;
+  --t-chart-previous: #66666f;
+  --t-chart-third: #9a9aa6;
+  --t-chart-highlight: #6e8bff;
+  --t-chart-grid: #1e1e24;
+
+  --t-shadow-overlay: 0 24px 64px -16px rgb(0 0 0 / 0.72), 0 4px 12px -4px rgb(0 0 0 / 0.5);
+  --t-shadow-float: 0 12px 32px -8px rgb(0 0 0 / 0.62);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --t-canvas: #fbfaf9;
+  --t-surface: #ffffff;
+  --t-raised: #f4f3f1;
+  --t-line: #ebeae7;
+  --t-line-strong: #d9d7d3;
+
+  --t-ink: #16150f;
+  --t-ink-muted: #5a5750;
+  --t-ink-faint: #747169;
+  --t-ink-ghost: #9e9b93;
+  --t-ink-inverse: #ffffff;
+
+  --t-scrim: rgb(22 21 15 / 0.38);
+
+  --t-accent: #2647e0;
+  --t-accent-hover: #1d38b8;
+  --t-accent-soft: #eef1fd;
+  --t-accent-line: #c3ccf7;
+
+  --t-positive: #2e7d4f;
+  --t-positive-soft: #ecf5ef;
+  --t-negative: #d64545;
+  --t-negative-soft: #fdeded;
+  --t-pending: #b8860b;
+  --t-pending-soft: #fbf4e4;
+
+  --t-emphasis: #16150f;
+  --t-emphasis-ink: #ffffff;
+
+  --t-panel: #16150f;
+  --t-panel-ink: #ffffff;
+  --t-panel-ink-muted: #c9c7c1;
+  --t-panel-line: #3a3831;
+
+  --t-chart-current: #16150f;
+  --t-chart-previous: #8a8a8a;
+  --t-chart-third: #5e5e5e;
+  --t-chart-highlight: #2647e0;
+  --t-chart-grid: #ebeae7;
+
+  --t-shadow-overlay: 0 24px 64px -16px rgb(22 21 15 / 0.2), 0 4px 12px -4px rgb(22 21 15 / 0.07);
+  --t-shadow-float: 0 12px 32px -8px rgb(22 21 15 / 0.24);
+}
