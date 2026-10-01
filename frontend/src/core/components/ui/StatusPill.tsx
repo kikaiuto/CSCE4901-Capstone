@@ -20,12 +20,12 @@ export interface StatusPillProps {
 const TONES: Record<Status, string> = {
   draft: 'border-line-strong text-ink-muted',
   confirmed: 'border-accent-line text-accent',
-  fulfilled: 'border-positive/40 text-positive',
-  cancelled: 'border-negative/40 text-negative',
-  submitted: 'border-pending/40 text-pending',
-  received: 'border-positive/40 text-positive',
-  active: 'border-positive/40 text-positive',
-  invited: 'border-pending/40 text-pending',
+  fulfilled: 'border-positive/55 text-positive',
+  cancelled: 'border-negative/55 text-negative',
+  submitted: 'border-pending/55 text-pending',
+  received: 'border-positive/55 text-positive',
+  active: 'border-positive/55 text-positive',
+  invited: 'border-pending/55 text-pending',
   auto: 'border-accent-line text-accent',
   manual: 'border-line-strong text-ink-muted',
 }

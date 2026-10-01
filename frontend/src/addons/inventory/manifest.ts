@@ -1,12 +1,11 @@
-export const manifest = {
-  id: 'inventory',
+import type { AddonManifest } from '@/core/app/manifest'
+
+export const manifest: AddonManifest = {
+  name: 'inventory',
   label: 'Inventory',
   icon: 'inventory',
-  track: 'INV',
-  screens: ['S-05 Product and stock ledger'],
-  nav: {
-    group: 'operations',
-    to: '/inventory',
-  },
-  queueGroups: ['reorder'],
+  to: '/inventory',
+  group: 'operations',
+  sequence: 30,
+  screens: ['S-05'],
 }
