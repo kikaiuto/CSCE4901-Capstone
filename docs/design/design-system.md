@@ -1,8 +1,9 @@
 # Design system
 
-The rules the Sector 7 frontend is built from. Everything here comes out of the ten
-wireframes in `wireframes/` (S-01 to S-10) and the rationale section of the UI design
-document. Tokens live in `frontend/src/styles/theme.css`; this file explains them.
+The rules the Sector 7 frontend is built from. Most of it comes out of the ten wireframes
+in `wireframes/` (S-01 to S-10) and the rationale section of the UI design document; S-11
+to S-13 were added since and are explained under **Screen status**. Tokens live in
+`frontend/src/core/styles/palette.css` and are bound in `theme.css`; this file explains them.
 
 ## What the design is trying to do
 
@@ -19,10 +20,12 @@ What replaced it:
 - Each record screen has one primary action in a bar pinned to the bottom, and that bar
   previews the side effects before they happen — stock reservations and the exact journal
   entries that will post.
-- Navigation has two axes. A 72px module rail on the left switches modules and is always
+- Navigation has three axes. A 72px module rail on the left switches modules and is always
   visible; a sticky module bar above the content carries a breadcrumb for drilling into
-  records, the screen's own actions, and the search field. It opens with the organization,
-  not a product wordmark — you switch organizations, you never switch products.
+  records, the record pager, the screen's own actions, and the search field; and a module
+  with more than one list carries a section nav under its page title. The rail opens with
+  the organization, not a product wordmark — you switch organizations, you never switch
+  products.
 - The AI has no tab. It lives in the command bar (⌘K), in the search field that opens it,
   and in one quiet ask line on Home.
 
@@ -51,11 +54,26 @@ is Procurement. `ModuleRail` takes a `labels` prop so icon-only remains a one-li
 
 The breadcrumb is derived from route `handle` metadata through `useMatches`, never from
 parsing the pathname, so a crumb can be a function of the route params. Module roots
-redirect into a list, matching the wireframes: Inventory opens on Products, Procurement on
-Purchase orders, Accounting on Journal, Admin on People.
+redirect into a list, matching the wireframes: Sales opens on Orders, Inventory on Products,
+Procurement on Purchase orders, Accounting on Journal, Admin on People.
 
-The rationale section of the UI design document still argues the top-tabs position and
-needs updating before that document is submitted.
+**Sections, for modules with more than one list.** Sales owns Orders and Customers;
+Accounting owns Journal, Chart of accounts and Profit and loss. A module rail entry points
+at one of them, so the rest need a way in. `SectionNav` is a row of links under the page
+title, declared per addon in `sections.ts` and rendered by every screen in that module.
+
+This is deliberately not a fourth level of the rail. The rail is modules, the breadcrumb is
+depth, and sections are peers inside one module — flattening them into the rail would have
+put eleven entries where there are five. It also closed a real hole: before this, the S-10
+Profit and loss screen had no link anywhere in the app and was reachable only by typing its
+URL.
+
+**The record pager.** A record screen registers its siblings through `useRecordPager`, and
+the module bar renders `3 of 11` with previous and next arrows beside the breadcrumb. Odoo
+has had this for years and it is the single cheapest thing that makes a back office feel
+quick: without it, moving between two orders means going back to the list and finding your
+place again. The hook takes the list the record came from, so the pager follows whatever
+the list was showing.
 
 ## Color
 
@@ -63,46 +81,45 @@ One accent. Blue is reserved for primary actions, links, and selection. Red and 
 only ever carry meaning — shortages, out-of-balance entries, gains and losses. Everything
 else is ink on a neutral ground.
 
-**The interface is dark-first.** Dark is `:root` and what gets demoed; light is opt-in via
-`:root[data-theme='light']` and is fully supported. `prefers-color-scheme` is deliberately
-not consulted — honouring the OS would show a grader on a light laptop the wrong theme on
-first load. A stored preference wins; absent one, dark. An inline script in `index.html`
-sets the attribute before first paint, and because dark is the default a script failure
-renders dark rather than flashing white.
+**The interface is light, and light only.** There is one `:root` block, one set of values,
+and no theme attribute, toggle, stored preference or pre-paint script. `prefers-color-scheme`
+is deliberately not consulted.
 
-| Token | Dark | Light | Used for |
-| --- | --- | --- | --- |
-| `--color-canvas` | `#0A0A0C` | `#FBFAF9` | page background |
-| `--color-surface` | `#111114` | `#FFFFFF` | cards, tables, inputs |
-| `--color-raised` | `#1A1A1F` | `#F4F3F1` | hover fills, inert button fills |
-| `--color-line` | `#232329` | `#EBEAE7` | hairline borders, row dividers |
-| `--color-line-strong` | `#33333B` | `#D9D7D3` | input and button borders |
-| `--color-ink` | `#ECECF1` | `#16150F` | primary text |
-| `--color-ink-muted` | `#9C9CA8` | `#5A5750` | secondary text, column headers, axis labels |
-| `--color-ink-faint` | `#82828E` | `#747169` | placeholders, section labels |
-| `--color-ink-ghost` | `#4A4A55` | `#9E9B93` | decoration only, never text |
-| `--color-accent` | `#6E8BFF` | `#2647E0` | primary actions, links, selection |
-| `--color-positive` | `#4FC48C` | `#2E7D4F` | gains, fulfilled, active |
-| `--color-negative` | `#FF7070` | `#D64545` | shortages, cancelled, out of balance |
-| `--color-pending` | `#E2A63C` | `#B8860B` | submitted, invited |
-| `--color-emphasis` | `#ECECF1` | `#16150F` | the `ink` button fill |
-| `--color-panel` | `#1E1E24` | `#16150F` | floating overlays: bulk bar, tooltips |
-| `--color-scrim` | `rgb(0 0 0 / .66)` | `rgb(22 21 15 / .38)` | the backdrop behind a modal |
+This reverses the dark-first decision of 2026-10-01, which had made dark the default and
+light opt-in. The reason is the audience: Sector 7 is sold to small businesses doing their
+books, and every product they already use for that work — Odoo, Xero, QuickBooks, NetSuite —
+is light. A dark ERP is a statement about the people who built it, not a service to the
+people using it. Dropping the second theme also removes the whole class of bugs that comes
+from maintaining two palettes, and realigns the code with the ten wireframes, which are light.
 
-Four of those names are new, and they exist because inverting a palette breaks anything
-that assumed a direction. `--color-emphasis` replaces `bg-ink` as a fill: in dark, `ink`
-is near-white, so an ink-filled button would have been near-white text on a near-white
-block. `--color-panel` is a dark slab in *both* themes, because a floating overlay reads
-as floating by being darker than the page in light and lighter than the page in dark;
-nine hardcoded `white` values used to do that job. `--color-scrim` is dark in both themes
-for the same reason — a canvas-tinted scrim stops dimming anything in light.
+| Token | Value | Used for |
+| --- | --- | --- |
+| `--color-canvas` | `#FBFAF9` | page background |
+| `--color-surface` | `#FFFFFF` | cards, tables, inputs |
+| `--color-raised` | `#F4F3F1` | hover fills, inert button fills, the active section tab |
+| `--color-line` | `#EBEAE7` | hairline borders, row dividers |
+| `--color-line-strong` | `#D9D7D3` | input and button borders |
+| `--color-ink` | `#16150F` | primary text |
+| `--color-ink-muted` | `#5A5750` | secondary text, column headers, axis labels |
+| `--color-ink-faint` | `#747169` | placeholders, section labels |
+| `--color-ink-ghost` | `#9E9B93` | decoration only, never text |
+| `--color-accent` | `#2647E0` | primary actions, links, selection |
+| `--color-positive` | `#2E7D4F` | gains, fulfilled, active |
+| `--color-negative` | `#D64545` | shortages, cancelled, out of balance |
+| `--color-pending` | `#B8860B` | submitted, invited |
+| `--color-emphasis` | `#16150F` | the `ink` button fill |
+| `--color-panel` | `#16150F` | floating overlays: bulk bar, tooltips |
+| `--color-scrim` | `rgb(22 21 15 / .38)` | the backdrop behind a modal |
 
-The accent had to move. `#2647E0` is about 2.3:1 on `#0A0A0C` and fails outright, so dark
-uses `#6E8BFF` at 6.4:1. `--color-ink-faint` moved in both themes: at `#9E9B93` it was
-2.6:1 on white, and it carries the `section-label` text, so it was failing AA for real
-content. Pulling it to a passing value collapsed it into `--color-ink-muted`, so the
-middle tier moved too. The old value survives as `--color-ink-ghost` for decoration, such
-as the sign-in dot grid.
+`--color-emphasis` and `--color-panel` survive the collapse rather than folding back into
+`ink`. `emphasis` is a fill where `ink` is text, and keeping them apart is what lets a
+button be filled without hardcoding a color. `panel` is the dark slab a floating overlay
+uses to read as floating; it replaced nine hardcoded `white` values and should stay a token.
+
+`--color-ink-faint` sits at `#747169` rather than the `#9E9B93` it was originally given,
+because it carries the `section-label` text and `#9E9B93` is 2.6:1 on white — failing AA
+for real content. The old value survives as `--color-ink-ghost`, which is only ever
+decoration, such as the sign-in dot grid.
 
 **Tokens are bound with `@theme inline`.** A `var()` inside a custom property resolves
 where the property is *declared*, not where it is used, so a plain `@theme` reference
@@ -112,37 +129,26 @@ keyframes — stay in plain `@theme`.
 
 ### Chart colors
 
-Charts use a four-step ramp, deliberately separate from the UI palette so a theme change
+Charts use a four-step ramp, deliberately separate from the UI palette so a palette change
 can't quietly break a chart's readability.
 
-| Token | Dark | Light | Used for |
-| --- | --- | --- | --- |
-| `--color-chart-current` | `#E6E6EC` | `#16150F` | the hero series |
-| `--color-chart-third` | `#9A9AA6` | `#5E5E5E` | the third series, S-10 operating expenses |
-| `--color-chart-previous` | `#66666F` | `#8A8A8A` | the de-emphasised comparison series |
-| `--color-chart-highlight` | `#6E8BFF` | `#2647E0` | the highlighted value and the average line |
-| `--color-chart-grid` | `#1E1E24` | `#EBEAE7` | grid lines, which are decoration |
-
-**These numbers were re-derived on 2026-10-01, not carried over.** The previous note
-recorded `#8A8A8A` as the lightest gray clearing 3:1 against *white* with the best
-colorblind separation from `#2647E0`. Dark-first changed every input to that calculation:
-the background, the accent, and the hero series, which flips from near-black to
-near-white. Re-running it found the third series failing in both themes — 2.26:1 for the
-first dark candidate and 1.71:1 for `#C8C6C1`, the value the S-10 wireframe itself uses.
-
-Checked with WCAG relative luminance and CIEDE2000 under Machado 2009 dichromacy
-matrices, against both canvas and surface, since charts sit in cards:
-
-| | lowest contrast | worst-case pairwise ΔE |
+| Token | Value | Used for |
 | --- | --- | --- |
-| Dark | 3.32:1 (`previous` on surface) | 19.5 |
-| Light | 3.31:1 (`previous` on canvas) | 17.5 |
+| `--color-chart-current` | `#16150F` | the hero series |
+| `--color-chart-third` | `#5E5E5E` | the third series, S-10 operating expenses |
+| `--color-chart-previous` | `#8A8A8A` | the de-emphasised comparison series |
+| `--color-chart-highlight` | `#2647E0` | the highlighted value and the average line |
+| `--color-chart-grid` | `#EBEAE7` | grid lines, which are decoration |
 
-Every series clears the 3:1 minimum for a graphical object in both themes. Light keeps
-`#8A8A8A` exactly, so the original validation still stands for it. If you change any of
-these, re-run the check rather than eyeballing it — the script is a contrast and ΔE pass
-over the four series against both backgrounds under normal vision and the three
-dichromacies.
+`#8A8A8A` is the lightest gray clearing 3:1 against white with the best colorblind
+separation from `#2647E0`. Checked with WCAG relative luminance and CIEDE2000 under
+Machado 2009 dichromacy matrices, against both canvas and surface, since charts sit in
+cards: lowest contrast 3.31:1 (`previous` on canvas), worst-case pairwise ΔE 17.5.
+
+Every series clears the 3:1 minimum for a graphical object. The S-10 wireframe's own
+`#C8C6C1` for the third series was rejected at 1.71:1. If you change any of these, re-run
+the check rather than eyeballing it — a contrast and ΔE pass over the four series against
+both backgrounds under normal vision and the three dichromacies.
 
 Grid lines sit at about 1.2:1 by design. They are decoration, not data, and a grid that
 competes with the series is worse than no grid.
@@ -174,10 +180,10 @@ covers all four series. That shared reading was the only thing the second axis w
 buying. The alternative — rebasing both measures to an index of 100 — was rejected
 because an accountant reading a P&L wants the literal 15.1%, and indexing hides it.
 
-Theming needs no JavaScript. Recharts passes `fill` and `stroke` straight to SVG
-attributes, so `var(--color-chart-current)` resolves at the element and follows a theme
-swap for free. `useThemeColors` exists only for the two cases that cannot take a `var()`,
-gradient stops and computed cursor fills.
+Chart colors need no JavaScript. Recharts passes `fill` and `stroke` straight to SVG
+attributes, so `var(--color-chart-current)` resolves at the element. `useThemeColors`
+exists only for the two cases that cannot take a `var()`, gradient stops and computed
+cursor fills.
 
 Every chart sits in a `ChartCard` that renders the same numbers as a visually hidden
 table. That is the real answer for screen readers, and it is why chart tests assert on
@@ -193,8 +199,7 @@ routes are lazy and the entry bundle does not carry it.
 Two faces. Inter for interface text and display headings, JetBrains Mono for every
 figure — amounts, quantities, IDs, dates, account codes, keyboard chips, status pills.
 Both are self-hosted through `@fontsource-variable`, which removes a render-blocking
-third-party round trip and the font swap that goes with it; a swap is very visible on a
-dark first paint.
+third-party round trip and the font swap that goes with it.
 
 This replaced IBM Plex Sans, Serif and Mono on 2026-10-01. The serif display face is
 gone, and with it the clearest thing separating this interface from every other technical
@@ -307,6 +312,11 @@ a glyph. The set stands at 28.
 
 Blue is reserved. A screen has at most one blue button.
 
+**Where the primary action sits** depends on the kind of screen. A list puts it top right
+in the page header; a record pins it to the `ActionBar` at the bottom, with the side effects
+previewed to its left. S-05 used to break this — it was a record screen with Adjust and
+Reorder in the header — and was moved to the bar so the rule can be stated in one line.
+
 ## The unwired convention
 
 There is no backend yet. Rather than shipping buttons that look live and silently do
@@ -317,14 +327,39 @@ focusable, so keyboard users can still find it and understand why it is off.
 The split:
 
 - **Live** — anything that is view state or navigation. Rail links, breadcrumbs, the
-  theme toggle, sign-in to Home,
-  status-tab filtering, row selection, the command bar and everything the assistant does.
+  section nav, the record pager, every link from a list into a record and from a record
+  back out to a related one, sign-in to Home, status-tab filtering, row selection, the
+  command bar and everything the assistant does.
 - **Unwired** — anything that writes, or opens a screen that isn't built. Confirm,
-  Draft PO, Receive, Open, New order, Export, the filter dropdowns, the org switcher.
+  Draft PO, Receive, Open, New order, New customer, New account, Adjust, Reorder, Export,
+  Split into backorder, the filter dropdowns, the org switcher.
 
 Remove `unwired` when the endpoint behind a control actually exists. The tests in
 `Button.test.tsx` and each screen's test file assert this behavior, so a control that
 gets wired up without removing the prop will fail rather than pass quietly.
+
+## Roles in the interface
+
+F2 defines six roles — Owner, Admin, Sales, Inventory, Purchasing, Accounting — and
+`RBACGuard` enforces them on the server. The interface only *hides*; it never decides.
+
+`src/addons/base/fixtures/people.ts` holds the matrix S-09 draws: six roles against five
+areas, each `full`, `view` or `none`. `core/app/useAccess.ts` reads it against
+`currentUser.role`, and two things consume that:
+
+- The module rail drops any entry whose `area` the role cannot see. A Sales user has no
+  Procurement or Accounting rail entry, and nobody but an Owner or Admin sees Admin.
+- The Home queue drops any group whose area the role cannot see, and the "n things need
+  you" count follows. A Warehouse user is not told a journal entry is out of balance.
+
+Each nav entry declares its own `area` in its manifest, so core never hard-codes the
+mapping. `useAccess` is the fifth and last core file allowed to reach into an addon, and
+`addonDeps.test.ts` pins that list.
+
+Until this, S-09 was a picture of a permission system with nothing behind it. It is still
+only half of one — the matrix is per area rather than per endpoint, and there is no way to
+sign in as anyone but Dana Owens — but the rail and the queue now answer "what does a
+Purchasing user actually see" with code rather than a table.
 
 ## The AI surface
 
@@ -362,37 +397,59 @@ deliberately close to what that endpoint should return.
 | S-01 Sign in | built |
 | S-02 Home (Today) | built |
 | S-03 Sales orders | built |
-| S-04 Sales order detail | wireframe only |
+| S-04 Sales order detail | built |
 | S-05 Product and stock ledger | built, with the forecast overlay |
 | S-06 Receive purchase order | built |
 | S-07 Journal entry | built |
 | S-08 Command bar with AI | built; the `/ask` page is not |
 | S-09 People and roles | built |
 | S-10 Profit and loss | built, dual axis resolved into two charts |
+| S-11 Customers | built |
+| S-12 Customer detail | built |
+| S-13 Chart of accounts | built |
 
-Two list screens exist that were never wireframed — Products and Purchase orders — both
-derived from the S-03 pattern rather than invented, so every module opens on a list.
+S-11 to S-13 are new and have no wireframe in the design document. They exist because the
+document named screens it never drew: R5 "Customer management" is a priority-1 requirement
+for this semester, D-03 calls the module "Sales and CRM" when nothing in it was a customer,
+and R18 "Chart of accounts" was priority 1 with nowhere to live — S-07 picks accounts from
+a list the user could not see or edit.
 
-Anything still only drawn routes to a placeholder inside the shell, so the whole rail is
-explorable rather than part of it leading to dead links.
+None of the three is invented from nothing. S-11 follows the S-03 list pattern. S-12 is
+S-05 with a customer in place of a product: identity header, figure strip, a table of open
+documents each carrying its own next action, and a history chart. That table is the thing
+Odoo does with smart buttons, where a count badge opens a filtered list; putting the
+document and its action in one row is a better version of the same idea, and it was already
+the house pattern.
 
-The ten wireframe PNGs in `wireframes/` are light-theme references drawn against the
-224px sidebar and the earlier top-tab layout. They remain the authority on what each
-screen contains and are no longer the authority on chrome or color.
+A customer self-service portal — Odoo's `/my` — is deliberately **out of scope**. All six
+roles in F2 are internal staff, nothing in R1–R32 asks for one, and it would need a second
+layer of row scoping below `organization_id` plus its own shell. Customers in Sector 7 are
+records that staff work with, not users who sign in.
+
+Two further list screens exist that were never wireframed — Products and Purchase orders —
+both derived from the S-03 pattern, so every module opens on a list.
+
+The ten wireframe PNGs in `wireframes/` are drawn against the 224px sidebar and the earlier
+top-tab layout. They remain the authority on what each screen contains and are no longer
+the authority on chrome. They are light, which the interface is again.
 
 ### Known gaps
 
 - The `/ask` page described under **The AI surface** does not exist. There is no `/ask`
   route and no Ask page component; the assistant is reachable through ⌘K and the Home ask
   line only. Either build it or cut the claim before submission.
-- S-04 sales order detail is still a placeholder.
+- S-11 to S-13 have no figure in `Sector7_UI_Design_Sections.docx`. They need drawing, or
+  at least listing, before that document is submitted.
+- Role gating is cosmetic. `useAccess` hides rail entries and queue groups the signed-in
+  role cannot see, but `currentUser` is a fixture with no way to change it, so only the
+  Owner's view is reachable in the running app.
 
 ### Checking it visually
 
-All ten screens were captured in both themes at 1280×800 on 2026-10-01, with no console
-or page errors. `frontend/scripts/screenshots.mjs` repeats the pass and fails on any
-error it finds. Playwright is deliberately not a dependency; the script prints the
-install line when it is missing:
+All fourteen routes were captured at 1280×800 with no console or page errors.
+`frontend/scripts/screenshots.mjs` repeats the pass and fails on any error it finds.
+Playwright is deliberately not a dependency; the script prints the install line when it is
+missing:
 
 ```
 npm install --no-save playwright && npx playwright install chromium
@@ -400,8 +457,9 @@ npm run dev
 npm run screenshots
 ```
 
-That pass is worth running after any change to the shell, the palette or a chart. It
-found two things a green test suite was happy to ship: the Admin rail icon was a gear,
-which at 20px is the same shape as the sun on the theme toggle directly beneath it, and
-the Home metric strip overflowed its column so revenue's delta ran into the next figure.
-Tests check structure. They do not look at the page.
+That pass is worth running after any change to the shell, the palette or a chart. It keeps
+finding things a green test suite is happy to ship: the Admin rail icon was a gear, which
+at 20px was the same shape as the control directly beneath it; the Home metric strip
+overflowed its column so revenue's delta ran into the next figure; and S-13 first drew its
+column headers once per account type, five identical header rows down one page, which only
+looked wrong in a screenshot. Tests check structure. They do not look at the page.

@@ -14,6 +14,7 @@ export interface QueueItem {
 export interface QueueGroup {
   id: QueueGroupId
   label: string
+  area: 'Sales' | 'Inventory' | 'Procurement' | 'Accounting'
   items: QueueItem[]
 }
 
@@ -21,6 +22,7 @@ export const queue: QueueGroup[] = [
   {
     id: 'confirm',
     label: 'Confirm',
+    area: 'Sales',
     items: [
       {
         id: 'so-1044',
@@ -42,6 +44,7 @@ export const queue: QueueGroup[] = [
   {
     id: 'reorder',
     label: 'Reorder',
+    area: 'Inventory',
     items: [
       {
         id: 'wa-100',
@@ -62,6 +65,7 @@ export const queue: QueueGroup[] = [
   {
     id: 'receive',
     label: 'Receive',
+    area: 'Procurement',
     items: [
       {
         id: 'po-0214',
@@ -75,6 +79,7 @@ export const queue: QueueGroup[] = [
   {
     id: 'fix',
     label: 'Fix',
+    area: 'Accounting',
     items: [
       {
         id: 'je-draft',
@@ -89,3 +94,7 @@ export const queue: QueueGroup[] = [
 ]
 
 export const queueCount = queue.reduce((total, group) => total + group.items.length, 0)
+
+export function queueFor(canSee: (area: QueueGroup['area']) => boolean): QueueGroup[] {
+  return queue.filter((group) => canSee(group.area))
+}

@@ -10,5 +10,6 @@ export const manifest: AddonManifest = {
     to: '/procurement',
     group: 'operations',
     sequence: 40,
+    area: 'Procurement',
   },
 }

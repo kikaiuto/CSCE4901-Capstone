@@ -1,12 +1,9 @@
-import { useSyncExternalStore } from 'react'
-import { subscribe, useTheme } from './theme'
-
 const FALLBACK: Record<string, string> = {
-  '--color-chart-current': '#e6e6ec',
-  '--color-chart-previous': '#66666f',
-  '--color-chart-third': '#9a9aa6',
-  '--color-chart-highlight': '#6e8bff',
-  '--color-chart-grid': '#1e1e24',
+  '--color-chart-current': '#16150f',
+  '--color-chart-previous': '#8a8a8a',
+  '--color-chart-third': '#5e5e5e',
+  '--color-chart-highlight': '#2647e0',
+  '--color-chart-grid': '#ebeae7',
 }
 
 export function readColor(token: string): string {
@@ -19,10 +16,5 @@ export function readColor(token: string): string {
 }
 
 export function useThemeColors(tokens: string[]): string[] {
-  useTheme()
-  return useSyncExternalStore(
-    subscribe,
-    () => tokens.map(readColor).join('|'),
-    () => tokens.map((token) => FALLBACK[token] ?? 'currentColor').join('|'),
-  ).split('|')
+  return tokens.map(readColor)
 }

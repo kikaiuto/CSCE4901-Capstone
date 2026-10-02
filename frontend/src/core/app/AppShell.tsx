@@ -4,10 +4,12 @@ import { CommandBar } from '@/addons/ai/components/CommandBar'
 import { ModuleBar } from './ModuleBar'
 import { ModuleRail } from './ModuleRail'
 import { PageActionsContext } from './usePageActions'
+import { RecordPagerContext, type RecordPage } from './useRecordPager'
 
 export function AppShell() {
   const [commandBarOpen, setCommandBarOpen] = useState(false)
   const [actions, setActions] = useState<ReactNode>(null)
+  const [page, setPage] = useState<RecordPage | null>(null)
 
   const close = useCallback(() => setCommandBarOpen(false), [])
   const open = useCallback(() => setCommandBarOpen(true), [])
@@ -26,6 +28,7 @@ export function AppShell() {
 
   const context = useMemo(() => ({ openCommandBar: open }), [open])
   const push = useCallback((node: ReactNode) => setActions(node), [])
+  const pushPage = useCallback((next: RecordPage | null) => setPage(next), [])
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -39,11 +42,13 @@ export function AppShell() {
       <ModuleRail />
 
       <div className="ml-rail flex min-h-screen flex-col">
-        <ModuleBar onOpenCommandBar={open} actions={actions} />
+        <ModuleBar onOpenCommandBar={open} actions={actions} page={page} />
 
         <main id="content" className="flex-1 px-gutter py-8">
           <PageActionsContext.Provider value={push}>
-            <Outlet context={context} />
+            <RecordPagerContext.Provider value={pushPage}>
+              <Outlet context={context} />
+            </RecordPagerContext.Provider>
           </PageActionsContext.Provider>
         </main>
       </div>

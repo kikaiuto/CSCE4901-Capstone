@@ -1,23 +1,7 @@
 import { Figure } from '@/core/components/ui/Figure'
-import type { FigureKind } from '@/core/components/ui/Figure'
 import { riseAt } from '@/core/lib/motion'
 import { cn } from '@/core/lib/cn'
-
-interface Metric {
-  label: string
-  value: string
-  kind: FigureKind
-  places?: number
-  delta?: string
-  deltaKind?: FigureKind
-}
-
-const METRICS: Metric[] = [
-  { label: 'Revenue · 12w', value: '127800', kind: 'money', places: 0, delta: '15.2', deltaKind: 'percent' },
-  { label: 'Gross margin', value: '34.2', kind: 'percent', delta: '1.1', deltaKind: 'decimal' },
-  { label: 'Open orders', value: '23', kind: 'quantity' },
-  { label: 'Receivables', value: '12940', kind: 'decimal', places: 0, delta: '-2.3', deltaKind: 'percent' },
-]
+import { metrics } from '../fixtures/metrics'
 
 export interface MetricStripProps {
   fresh?: boolean
@@ -26,7 +10,7 @@ export interface MetricStripProps {
 export function MetricStrip({ fresh = false }: MetricStripProps) {
   return (
     <dl className="grid grid-cols-2 gap-x-10 gap-y-7 border-y border-line py-7 sm:grid-cols-4">
-      {METRICS.map((metric, index) => (
+      {metrics.map((metric, index) => (
         <div
           key={metric.label}
           className={cn(fresh && 'rise', 'flex flex-col gap-1.5')}

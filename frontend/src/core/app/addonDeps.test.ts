@@ -87,6 +87,7 @@ describe('addon dependencies', () => {
       'app/ModuleRail.tsx',
       'app/overlays.ts',
       'app/registry.ts',
+      'app/useAccess.ts',
     ])
   })
 })

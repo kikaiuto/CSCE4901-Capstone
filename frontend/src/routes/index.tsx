@@ -8,6 +8,7 @@ import { PurchaseOrdersScreen } from '@/addons/procurement/screens/PurchaseOrder
 import { PeopleScreen } from '@/addons/base/screens/PeopleScreen'
 import { ReceiveScreen } from '@/addons/procurement/screens/ReceiveScreen'
 import { JournalScreen } from '@/addons/accounting/screens/JournalScreen'
+import { customers } from '@/addons/sales/fixtures/customers'
 
 export const router = createBrowserRouter([
   { path: '/', element: <SignInScreen /> },
@@ -24,6 +25,31 @@ export const router = createBrowserRouter([
         path: '/sales/orders',
         element: <OrdersScreen />,
         handle: { crumb: 'Orders', view: 'list' },
+      },
+      {
+        path: '/sales/customers',
+        lazy: async () => ({
+          Component: (await import('@/addons/sales/screens/CustomersScreen')).CustomersScreen,
+        }),
+        handle: { crumb: 'Customers', view: 'list' },
+      },
+      {
+        path: '/sales/customers/:id',
+        lazy: async () => ({
+          Component: (await import('@/addons/sales/screens/CustomerScreen')).CustomerScreen,
+        }),
+        handle: {
+          crumb: (params: { id?: string }) =>
+            customers.find((customer) => customer.id === params.id)?.name ?? params.id ?? '',
+          view: 'record',
+        },
+      },
+      {
+        path: '/sales/orders/:number',
+        lazy: async () => ({
+          Component: (await import('@/addons/sales/screens/OrderScreen')).OrderScreen,
+        }),
+        handle: { crumb: (params: { number?: string }) => params.number ?? '', view: 'record' },
       },
       { path: '/inventory', element: <Navigate to="/inventory/products" replace /> },
       {
@@ -54,6 +80,13 @@ export const router = createBrowserRouter([
         path: '/accounting/journal',
         element: <JournalScreen />,
         handle: { crumb: 'Journal', view: 'record' },
+      },
+      {
+        path: '/accounting/accounts',
+        lazy: async () => ({
+          Component: (await import('@/addons/accounting/screens/AccountsScreen')).AccountsScreen,
+        }),
+        handle: { crumb: 'Chart of accounts', view: 'list' },
       },
       {
         path: '/accounting/reports/profit-loss',

@@ -44,6 +44,11 @@ F2 specifies six roles, enforced at the controller layer by `RBACGuard`:
 
 `Owner`, `Admin`, `Sales`, `Inventory`, `Purchasing`, `Accounting`
 
-The frontend fixture in `frontend/src/addons/base/fixtures/org.ts` still declares
-four (`Owner`, `Admin`, `Sales`, `Warehouse`) and needs correcting when
-`core/rbac.py` is written.
+The frontend fixture in `frontend/src/addons/base/fixtures/org.ts` declares the same
+six, and `frontend/src/addons/base/fixtures/people.ts` carries the role-by-area matrix
+S-09 renders. `frontend/src/core/app/useAccess.ts` reads that matrix to hide rail entries
+and Home queue groups a role cannot see. That is presentation only — `RBACGuard` in
+`core/rbac.py` is still the thing that enforces, and it is not written yet.
+
+The S-09 wireframe in `Sector7_UI_Design_Sections.docx` shows only four roles
+(`Owner`, `Admin`, `Sales`, `Warehouse`). The wireframe is wrong; this list is right.

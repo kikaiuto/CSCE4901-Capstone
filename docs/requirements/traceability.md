@@ -104,6 +104,22 @@ against it.
 FND-07 on the sprint board asks for owners for NF12, NF14 and NF15. All three now
 have one in the table above.
 
+## Screens added after the design document
+
+Three screens were added that the design document names requirements for but never drew.
+They are listed in `docs/design/design-system.md` under **Screen status** and need adding
+to `Sector7_UI_Design_Sections.docx` before it is submitted.
+
+| Screen | Requirement | Why it was missing |
+| --- | --- | --- |
+| S-11 Customers | R5 (priority 1) | D-03 calls the module "Sales and CRM"; nothing in S-01…S-10 was a customer |
+| S-12 Customer detail | R5, R6 | Follows the S-05 record pattern, with sales orders in place of stock documents |
+| S-13 Chart of accounts | R18 (priority 1) | S-07 picks accounts from a list the user could neither see nor edit |
+
+A customer self-service portal is **out of scope** and is not a gap. All six F2 roles are
+internal staff, no R-number asks for one, and it would need row scoping below
+`organization_id`. Customers are records staff work with, not users who sign in.
+
 ## Open questions
 
 Two state machines disagree with the wireframes and need settling before the
