@@ -5,11 +5,13 @@ import { Field, SelectShell } from '@/core/components/ui/Field'
 import { Figure } from '@/core/components/ui/Figure'
 import { Meter } from '@/core/components/ui/Meter'
 import { PageHeader } from '@/core/components/ui/PageHeader'
+import { SectionNav } from '@/core/components/ui/SectionNav'
 import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
 import { draftLines, recentEntries } from '../fixtures/journal'
+import { ACCOUNTING_SECTIONS } from '../sections'
 
 function sum(values: string[]): number {
   return values.reduce((total, value) => total + Number(value), 0)
@@ -27,6 +29,8 @@ export function JournalScreen() {
   return (
     <div className={cn(fresh && 'rise', 'mx-auto max-w-5xl')}>
       <PageHeader title="Journal entry" />
+
+      <SectionNav label="Accounting sections" items={ACCOUNTING_SECTIONS} className="mt-5" />
 
       <div className="mt-6 flex flex-wrap gap-4">
         <Field label="Date" defaultValue="2026-09-30" className="w-48" />

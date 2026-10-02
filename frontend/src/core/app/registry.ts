@@ -7,6 +7,7 @@ import { manifest as home } from '@/addons/home/manifest'
 import { manifest as inventory } from '@/addons/inventory/manifest'
 import { manifest as procurement } from '@/addons/procurement/manifest'
 import { manifest as sales } from '@/addons/sales/manifest'
+import { canSee } from './useAccess'
 
 export interface NavItem extends NavEntry {
   name: string
@@ -33,10 +34,16 @@ const navEntries: NavItem[] = addons
   .sort((a, b) => a.sequence - b.sequence)
 
 export function navItems(group: NavGroup): NavItem[] {
-  return navEntries.filter((item) => item.group === group)
+  return navEntries.filter((item) => item.group === group).filter(visibleToCurrentRole)
 }
 
-export const railItems: NavItem[] = navEntries.filter((item) => item.group !== 'admin')
+export function visibleToCurrentRole(item: NavItem): boolean {
+  return item.area === undefined || canSee(item.area)
+}
+
+export const railItems: NavItem[] = navEntries
+  .filter((item) => item.group !== 'admin')
+  .filter(visibleToCurrentRole)
 
 export function moduleFor(pathname: string): NavItem | undefined {
   return navEntries.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { Button } from '@/core/components/ui/Button'
 import { EmptyState } from '@/core/components/ui/EmptyState'
 import { PageHeader } from '@/core/components/ui/PageHeader'
@@ -6,6 +7,7 @@ import { BulkAction, BulkBar } from '@/core/components/ui/BulkBar'
 import { Checkbox } from '@/core/components/ui/Checkbox'
 import { Figure } from '@/core/components/ui/Figure'
 import { SelectShell } from '@/core/components/ui/Field'
+import { SectionNav } from '@/core/components/ui/SectionNav'
 import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
 import { Tabs, type TabItem } from '@/core/components/ui/Tabs'
@@ -14,6 +16,12 @@ import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
 import { countOf } from '@/core/lib/text'
 import { orderTotals, salesOrders, statusCounts, type OrderStatus } from '@/addons/sales/fixtures/orders'
+import { customers } from '@/addons/sales/fixtures/customers'
+import { SALES_SECTIONS } from '@/addons/sales/sections'
+
+const customerIds: Record<string, string> = Object.fromEntries(
+  customers.map((customer) => [customer.name, customer.id]),
+)
 
 type Filter = OrderStatus | 'all'
 
@@ -47,6 +55,8 @@ export function OrdersScreen() {
           </Button>
         }
       />
+
+      <SectionNav label="Sales sections" items={SALES_SECTIONS} className="mt-5" />
 
       <Tabs items={TABS} active={filter} onChange={setFilter} className="mt-6" />
 
@@ -101,9 +111,25 @@ export function OrdersScreen() {
                 />
               </Td>
               <Td>
-                <span className="figure">{order.number}</span>
+                <Link
+                  to={`/sales/orders/${order.number}`}
+                  className="figure text-accent hover:underline"
+                >
+                  {order.number}
+                </Link>
               </Td>
-              <Td>{order.customer}</Td>
+              <Td>
+                {customerIds[order.customer] ? (
+                  <Link
+                    to={`/sales/customers/${customerIds[order.customer]}`}
+                    className="hover:text-accent hover:underline"
+                  >
+                    {order.customer}
+                  </Link>
+                ) : (
+                  order.customer
+                )}
+              </Td>
               <Td>
                 <span className="figure text-ink-muted">{order.date}</span>
               </Td>

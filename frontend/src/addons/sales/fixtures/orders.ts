@@ -24,6 +24,83 @@ export const salesOrders: SalesOrder[] = [
   { id: 'so-1034', number: 'SO-1034', customer: 'Summit Tools', date: '2026-09-17', total: '512.00', status: 'fulfilled', owner: 'Marco Garcia' },
 ]
 
+export interface OrderLine {
+  id: string
+  sku: string
+  name: string
+  qty: string
+  price: string
+  amount: string
+  shortage?: string
+}
+
+export interface SideEffect {
+  id: string
+  title: string
+  detail: string
+  done: boolean
+}
+
+export interface OrderProblem {
+  message: string
+  fix: string
+}
+
+export interface OrderDetail {
+  billTo: string
+  credit: string
+  lines: OrderLine[]
+  subtotal: string
+  tax: string
+  total: string
+  sideEffects: SideEffect[]
+  problems: OrderProblem[]
+}
+
+export const orderDetails: Record<string, OrderDetail> = {
+  'SO-1044': {
+    billTo: 'Riverside Hardware',
+    credit: 'good standing',
+    lines: [
+      { id: 'l1', sku: 'WA-100', name: 'Widget A', qty: '10', price: '24.00', amount: '240.00', shortage: 'Only 4 available · short 6' },
+      { id: 'l2', sku: 'BX-220', name: 'Box Kit', qty: '5', price: '15.50', amount: '77.50' },
+    ],
+    subtotal: '317.50',
+    tax: '0.00',
+    total: '317.50',
+    sideEffects: [
+      { id: 's1', title: 'Created', detail: 'Jamie Lee · Sep 25, 10:12', done: true },
+      { id: 's2', title: 'Credit check passed', detail: 'Riverside Hardware · Good standing', done: true },
+      { id: 's3', title: 'Reserve stock', detail: 'WA-100 ×10, BX-220 ×5', done: false },
+      { id: 's4', title: 'Post revenue', detail: 'AR Dr 317.50 / Revenue Cr 317.50', done: false },
+      { id: 's5', title: 'Post cost of goods', detail: 'COGS Dr 182.60 / Inventory Cr 182.60', done: false },
+      { id: 's6', title: 'Fulfill', detail: 'Ship and close', done: false },
+    ],
+    problems: [{ message: 'Widget A is short 6 units.', fix: 'Split into backorder' }],
+  },
+  'SO-1036': {
+    billTo: 'Metro Fixtures',
+    credit: 'good standing',
+    lines: [
+      { id: 'l1', sku: 'TS-400', name: 'Tool Set', qty: '4', price: '89.00', amount: '356.00' },
+      { id: 'l2', sku: 'BX-220', name: 'Box Kit', qty: '12', price: '15.50', amount: '186.00' },
+      { id: 'l3', sku: 'CL-050', name: 'Cable Loom', qty: '6', price: '22.40', amount: '134.40' },
+    ],
+    subtotal: '676.40',
+    tax: '0.00',
+    total: '676.40',
+    sideEffects: [
+      { id: 's1', title: 'Created', detail: 'Marco Garcia · Sep 19, 14:38', done: true },
+      { id: 's2', title: 'Credit check passed', detail: 'Metro Fixtures · Good standing', done: true },
+      { id: 's3', title: 'Reserve stock', detail: 'TS-400 ×4, BX-220 ×12, CL-050 ×6', done: false },
+      { id: 's4', title: 'Post revenue', detail: 'AR Dr 676.40 / Revenue Cr 676.40', done: false },
+      { id: 's5', title: 'Post cost of goods', detail: 'COGS Dr 402.10 / Inventory Cr 402.10', done: false },
+      { id: 's6', title: 'Fulfill', detail: 'Ship and close', done: false },
+    ],
+    problems: [],
+  },
+}
+
 export const orderTotals = {
   count: 48,
   value: '28640.25',

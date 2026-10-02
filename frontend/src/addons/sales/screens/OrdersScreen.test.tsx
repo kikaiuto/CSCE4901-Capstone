@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { salesOrders } from '@/addons/sales/fixtures/orders'
+import { renderWithRouter } from '@/core/test/renderWithRouter'
 import { OrdersScreen } from './OrdersScreen'
 
 function bodyRows() {
@@ -11,20 +12,20 @@ function bodyRows() {
 
 describe('OrdersScreen', () => {
   it('lists every order when the All tab is active', () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     expect(bodyRows()).toHaveLength(salesOrders.length)
   })
 
   it('shows order numbers and totals in the wireframe format', () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     expect(screen.getByText('SO-1044')).toBeInTheDocument()
     expect(screen.getByText('2,140.00')).toBeInTheDocument()
   })
 
   it('filters the table down to drafts', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('tab', { name: /Draft/ }))
 
@@ -34,7 +35,7 @@ describe('OrdersScreen', () => {
   })
 
   it('filters down to a single cancelled order', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('tab', { name: /Cancelled/ }))
 
@@ -43,7 +44,7 @@ describe('OrdersScreen', () => {
   })
 
   it('returns to the full list when All is chosen again', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('tab', { name: /Draft/ }))
     await userEvent.click(screen.getByRole('tab', { name: /^All/ }))
@@ -52,13 +53,13 @@ describe('OrdersScreen', () => {
   })
 
   it('keeps the bulk bar hidden until a row is selected', () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     expect(screen.queryByText(/selected/)).not.toBeInTheDocument()
   })
 
   it('raises the bulk bar when a row is selected', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select SO-1044' }))
 
@@ -67,7 +68,7 @@ describe('OrdersScreen', () => {
   })
 
   it('counts multiple selected rows', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select SO-1044' }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select SO-1036' }))
@@ -77,7 +78,7 @@ describe('OrdersScreen', () => {
   })
 
   it('selects every visible row from the header checkbox', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select every order' }))
 
@@ -86,7 +87,7 @@ describe('OrdersScreen', () => {
   })
 
   it('clears the selection from the bulk bar', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select SO-1044' }))
     await userEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
@@ -95,7 +96,7 @@ describe('OrdersScreen', () => {
   })
 
   it('marks the header checkbox mixed for a partial selection', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Select SO-1044' }))
 
@@ -106,7 +107,7 @@ describe('OrdersScreen', () => {
   })
 
   it('leaves the write actions visibly unwired', async () => {
-    render(<OrdersScreen />)
+    renderWithRouter(<OrdersScreen />)
 
     expect(screen.getByRole('button', { name: /New order/ })).toHaveAttribute(
       'aria-disabled',

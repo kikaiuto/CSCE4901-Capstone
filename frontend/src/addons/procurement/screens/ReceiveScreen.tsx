@@ -10,12 +10,20 @@ import { Stepper } from '@/core/components/ui/Stepper'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
+import { useRecordPager } from '@/core/app/useRecordPager'
 import { purchaseOrders, receipt, receiptLines } from '../fixtures/purchaseOrders'
 
 export function ReceiveScreen() {
   const { id } = useParams()
   const order = purchaseOrders.find((po) => po.number === id)
   const fresh = useFirstVisit(`procurement/receive/${id}`)
+
+  useRecordPager(
+    purchaseOrders,
+    (row) => row.number === id,
+    (row) => `/procurement/orders/${row.number}`,
+    'purchase order',
+  )
 
   const [received, setReceived] = useState<Record<string, number>>(() =>
     Object.fromEntries(receiptLines.map((line) => [line.id, line.received])),

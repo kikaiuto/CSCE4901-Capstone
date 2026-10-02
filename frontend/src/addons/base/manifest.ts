@@ -10,5 +10,6 @@ export const manifest: AddonManifest = {
     to: '/admin',
     group: 'admin',
     sequence: 60,
+    area: 'Admin',
   },
 }

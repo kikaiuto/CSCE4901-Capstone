@@ -3,6 +3,7 @@ import { Button } from '@/core/components/ui/Button'
 import { SelectShell } from '@/core/components/ui/Field'
 import { Figure } from '@/core/components/ui/Figure'
 import { PageHeader } from '@/core/components/ui/PageHeader'
+import { SectionNav } from '@/core/components/ui/SectionNav'
 import { SegmentedControl } from '@/core/components/ui/SegmentedControl'
 import { StatTile } from '@/core/components/ui/StatTile'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
@@ -17,6 +18,7 @@ import {
 import { cn } from '@/core/lib/cn'
 import { compactMoney } from '@/core/lib/decimal'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
+import { ACCOUNTING_SECTIONS } from '../sections'
 import {
   headline,
   periods,
@@ -70,6 +72,8 @@ export function ProfitLossScreen() {
           </>
         }
       />
+
+      <SectionNav label="Accounting sections" items={ACCOUNTING_SECTIONS} className="mt-5" />
 
       <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-6 border-y border-line py-6 sm:grid-cols-4">
         <StatTile

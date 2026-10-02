@@ -14,6 +14,7 @@ export type Status =
 
 export interface StatusPillProps {
   status: Status
+  label?: string
   className?: string
 }
 
@@ -30,7 +31,7 @@ const TONES: Record<Status, string> = {
   manual: 'border-line-strong text-ink-muted',
 }
 
-export function StatusPill({ status, className }: StatusPillProps) {
+export function StatusPill({ status, label, className }: StatusPillProps) {
   return (
     <span
       className={cn(
@@ -39,7 +40,7 @@ export function StatusPill({ status, className }: StatusPillProps) {
         className,
       )}
     >
-      {status}
+      {label ?? status}
     </span>
   )
 }

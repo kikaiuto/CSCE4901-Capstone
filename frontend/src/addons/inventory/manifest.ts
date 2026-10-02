@@ -10,5 +10,6 @@ export const manifest: AddonManifest = {
     to: '/inventory',
     group: 'operations',
     sequence: 30,
+    area: 'Inventory',
   },
 }

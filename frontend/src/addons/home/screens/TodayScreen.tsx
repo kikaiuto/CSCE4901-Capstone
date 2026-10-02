@@ -4,7 +4,9 @@ import { countOf } from '@/core/lib/text'
 import { riseAt } from '@/core/lib/motion'
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
-import { queue, queueCount } from '@/addons/home/fixtures/queue'
+import { canSee } from '@/core/app/useAccess'
+import { EmptyState } from '@/core/components/ui/EmptyState'
+import { queueFor } from '@/addons/home/fixtures/queue'
 import { currentUser, today } from '@/addons/base/fixtures/org'
 import { note } from '@/addons/home/fixtures/metrics'
 import { AskLine } from '../components/AskLine'
@@ -27,6 +29,9 @@ export function TodayScreen() {
   const firstName = currentUser.name.split(' ')[0]
   const fresh = useFirstVisit('home')
 
+  const visible = queueFor(canSee)
+  const count = visible.reduce((total, group) => total + group.items.length, 0)
+
   return (
     <div className="mx-auto max-w-3xl">
       <header className={cn(fresh && 'rise')}>
@@ -38,8 +43,14 @@ export function TodayScreen() {
           className={cn(fresh && 'rise', 'mt-3 max-w-md text-lg text-ink-muted')}
           style={fresh ? riseAt(1) : undefined}
         >
-          {countOf(queueCount, 'thing')} {queueCount === 1 ? 'needs' : 'need'} you. Nothing
-          is overdue.
+          {count === 0 ? (
+            'Nothing needs you. The business is running.'
+          ) : (
+            <>
+              {countOf(count, 'thing')} {count === 1 ? 'needs' : 'need'} you. Nothing is
+              overdue.
+            </>
+          )}
         </p>
       </header>
 
@@ -59,9 +70,16 @@ export function TodayScreen() {
       </p>
 
       <div className="mt-12 flex flex-col gap-11">
-        {queue.map((group, index) => (
-          <QueueGroup key={group.id} group={group} index={index} fresh={fresh} />
-        ))}
+        {visible.length > 0 ? (
+          visible.map((group, index) => (
+            <QueueGroup key={group.id} group={group} index={index} fresh={fresh} />
+          ))
+        ) : (
+          <EmptyState
+            title="The queue is empty"
+            detail="Nothing is waiting on a person right now. New work lands here as it arrives."
+          />
+        )}
       </div>
     </div>
   )

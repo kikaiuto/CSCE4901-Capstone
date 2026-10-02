@@ -2,7 +2,6 @@ import { NavLink, useLocation } from 'react-router'
 import { cn } from '@/core/lib/cn'
 import { Avatar } from '@/core/components/ui/Avatar'
 import { Icon } from '@/core/components/ui/Icon'
-import { ThemeToggle } from '@/core/components/ui/ThemeToggle'
 import { currentUser, organization } from '@/addons/base/fixtures/org'
 import { moduleFor, navItems, railItems, type NavItem } from './registry'
 
@@ -83,8 +82,6 @@ export function ModuleRail({ labels = true }: ModuleRailProps) {
             <RailLink addon={admin} labels={labels} />
           </nav>
         )}
-
-        <ThemeToggle />
 
         <button
           type="button"

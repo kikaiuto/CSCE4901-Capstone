@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
+import { ActionBar } from '@/core/components/ui/ActionBar'
 import { Button } from '@/core/components/ui/Button'
 import { EmptyState } from '@/core/components/ui/EmptyState'
 import { Figure } from '@/core/components/ui/Figure'
@@ -12,6 +13,7 @@ import { ChartCard, StepAreaChart, chartColor, type StockPoint } from '@/core/co
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
 import { overlayFor } from '@/core/app/overlays'
+import { useRecordPager } from '@/core/app/useRecordPager'
 import { products } from '../fixtures/products'
 import { openDocuments, stockLedger, stockSeries, todayLabel, type StockWindow } from '../fixtures/stock'
 
@@ -26,6 +28,13 @@ export function ProductScreen() {
   const [range, setRange] = useState<StockWindow>('60D')
   const product = products.find((item) => item.sku === sku)
   const fresh = useFirstVisit(`inventory/product/${sku}`)
+
+  useRecordPager(
+    products,
+    (row) => row.sku === sku,
+    (row) => `/inventory/products/${row.sku}`,
+    'product',
+  )
 
   const overlay = overlayFor('S-05')
 
@@ -53,16 +62,6 @@ export function ProductScreen() {
       <PageHeader
         title={product.name}
         meta={<span className="figure text-md text-ink-muted">{product.sku}</span>}
-        actions={
-          <>
-            <Button shortcut="A" unwired>
-              Adjust
-            </Button>
-            <Button variant="primary" shortcut="R" unwired>
-              Reorder
-            </Button>
-          </>
-        }
       />
 
       <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-6 border-y border-line py-6 sm:grid-cols-6">
@@ -207,6 +206,23 @@ export function ProductScreen() {
           </TBody>
         </Table>
       </section>
+
+      <ActionBar
+        preview={
+          <span>
+            On hand <Figure value={product.onHand} kind="quantity" tone="muted" /> · available{' '}
+            <Figure value={product.available} kind="quantity" tone="muted" /> · safety{' '}
+            <Figure value={product.safetyStock} kind="quantity" tone="muted" />
+          </span>
+        }
+      >
+        <Button shortcut="A" unwired>
+          Adjust
+        </Button>
+        <Button variant="primary" shortcut="R" unwired>
+          Reorder
+        </Button>
+      </ActionBar>
     </div>
   )
 }

@@ -2,19 +2,23 @@ import type { ReactNode } from 'react'
 import { Breadcrumb } from '@/core/components/ui/Breadcrumb'
 import { Icon } from '@/core/components/ui/Icon'
 import { Kbd } from '@/core/components/ui/Kbd'
+import { RecordPager } from '@/core/components/ui/RecordPager'
 import { useCrumbs } from './useCrumbs'
+import type { RecordPage } from './useRecordPager'
 
 export interface ModuleBarProps {
   onOpenCommandBar: () => void
   actions?: ReactNode
+  page?: RecordPage | null
 }
 
-export function ModuleBar({ onOpenCommandBar, actions }: ModuleBarProps) {
+export function ModuleBar({ onOpenCommandBar, actions, page }: ModuleBarProps) {
   const { crumbs } = useCrumbs()
 
   return (
     <header className="sticky top-0 z-30 flex h-topbar shrink-0 items-center gap-4 border-b border-line bg-canvas/85 px-gutter backdrop-blur">
       <Breadcrumb items={crumbs} />
+      {page && <RecordPager page={page} />}
 
       <div className="ml-auto flex items-center gap-2.5">
         {actions}
