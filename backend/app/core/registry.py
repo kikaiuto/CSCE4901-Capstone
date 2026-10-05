@@ -11,6 +11,6 @@ imports all eight addons, and it is how the AI layer stays isolated.
                          the ledger with no AI in the path. Requirements: R24.
     ai_tools             Read-only parameterized tools the assistant may call.
                          Each addon registers its own. Requirements: R25, R26.
-    nav_items            Sidebar entries, so the nav is generated rather than
+    nav_items            Module rail entries, so the nav is generated rather than
                          hand-listed in four places.
 """
