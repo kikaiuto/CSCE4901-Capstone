@@ -10,7 +10,7 @@ dict literal with these keys:
     depends        addon names this addon may import from
     screens        screen IDs this addon implements, S-01 through S-10
     requirements   requirement IDs this addon satisfies, R1 through R32
-    features       feature IDs from docs/features.md, F1 through F20
+    features       feature IDs, F1 through F20
     router         module name holding the addon's APIRouter
     models         ORM entity names this addon owns, from ER diagram D-02
     seeds          modules contributing rows to the seed tenants

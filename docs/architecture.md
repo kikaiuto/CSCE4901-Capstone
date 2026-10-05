@@ -10,7 +10,7 @@
 
 Business code lives in addons under `backend/app/addons/`. Framework code lives in
 `backend/app/core/` and never imports an addon. There are eight addons, one per
-branch of information architecture diagram D-03. See ADR 0001 for why.
+branch of information architecture diagram D-03.
 
 | Addon | Track | Screens | Depends on |
 | --- | --- | --- | --- |
@@ -42,8 +42,8 @@ since each addon's own data has to be correct in isolation. Sprint 2 lights up
 
 Addons that need data from several tracks do not import them. They read the
 categories in `core/registry.py`, which each addon contributes to: work queue
-rows for S-02, deterministic dashboard metrics, read-only AI tools, and sidebar
-entries. This is why `home` can render a queue fed by four addons while
+rows for S-02, deterministic dashboard metrics, read-only AI tools, and module
+rail entries. This is why `home` can render a queue fed by four addons while
 depending only on `base`.
 
 Cross-addon calls go through the seven Protocols in `core/contracts/` — identity,
@@ -75,6 +75,29 @@ Non-functional: NF8, NF9, NF11.
 ## Background Jobs
 
 ## Frontend
+
+Vite, React 19, TypeScript, Tailwind v4, and React Router 7, tested with Vitest.
+The layout mirrors the backend: `frontend/src/core/` is the framework half and
+`frontend/src/addons/<name>/` holds each addon's screens, components, and
+fixtures.
+
+Each addon declares a `manifest.ts` with its `depends`, its screens, and an
+optional `nav` entry. `core/app/registry.ts` reads the manifests to build the
+module rail, so adding a module does not mean editing a hand-written list.
+`core/app/addonDeps.test.ts` holds the frontend to the same import rule as the
+backend and rejects cycles.
+
+Contributions that cross addons go through core, as on the backend. The S-05
+forecast overlay belongs to `forecasting`, which registers it in
+`core/app/overlays.ts`; the inventory screen asks core for it by screen id rather
+than importing `forecasting`.
+
+Charts go through `core/components/charts`. Addons may not import Recharts
+directly, and ESLint blocks a second y axis inside the chart layer.
+
+Until the API exists, screens render from each addon's `fixtures/`, which are
+shaped as the endpoint response they stand in for. Controls that would write data
+carry the `unwired` prop and render visibly inert.
 
 ## Deployment Topology
 

@@ -112,7 +112,8 @@ blocks the import from `src/addons/**`, and blocks `yAxisId` and
 `orientation="right"` inside the chart layer, because the design system forbids a
 dual-axis chart and Recharts makes one a two-line change.
 
-Controls that would write data render visibly inert rather than looking live — see
-the unwired convention in `docs/design/design-system.md`. Remove the prop when the
+Controls that would write data render visibly inert rather than looking live: pass
+the `unwired` prop and the control gets a dashed border, a leading ✕, and a "Not
+wired up yet" tooltip, and its click handler is dropped. Remove the prop when the
 endpoint behind the control exists; `src/core/app/unwired.test.tsx` checks every
 screen, so wiring one up without removing it fails rather than passing quietly.

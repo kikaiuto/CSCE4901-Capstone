@@ -4,7 +4,7 @@ Tracks each requirement to the addon that implements it and the semester it is
 scheduled for.
 
 Names and priorities are transcribed from `Sector7-AI-Product-Requirements.docx`.
-Addon names are the eight defined in ADR 0001; the authoritative mapping is the
+Addon names are the eight listed in `docs/architecture.md`; the authoritative mapping is the
 `requirements` key of each `backend/app/addons/<name>/__manifest__.py`, and
 `backend/tests/architecture/test_manifests.py` asserts the two agree.
 
@@ -97,9 +97,8 @@ module:
 
 Two further gaps were closed. The matrix previously stopped at NF17; the
 requirements document defines NF1 through NF22, so NF18 through NF22 were added.
-And the F-IDs referenced throughout the backend were defined in no document —
-they are now in `docs/features.md`, and the original F1–F14 tags were re-numbered
-against it.
+And the F-IDs referenced throughout the backend were re-numbered F1 through F20,
+replacing the original F1–F14 tags.
 
 FND-07 on the sprint board asks for owners for NF12, NF14 and NF15. All three now
 have one in the table above.
@@ -107,8 +106,7 @@ have one in the table above.
 ## Screens added after the design document
 
 Three screens were added that the design document names requirements for but never drew.
-They are listed in `docs/design/design-system.md` under **Screen status** and need adding
-to `Sector7_UI_Design_Sections.docx` before it is submitted.
+They need adding to `Sector7_UI_Design_Sections.docx` before it is submitted.
 
 | Screen | Requirement | Why it was missing |
 | --- | --- | --- |
