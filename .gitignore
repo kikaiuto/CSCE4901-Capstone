@@ -29,6 +29,9 @@ yarn-error.log*
 pnpm-debug.log*
 *.tsbuildinfo
 
+# --- Cloudflare ---
+.wrangler/
+
 # --- Terraform ---
 .terraform/
 .terraform.lock.hcl
@@ -63,3 +66,5 @@ ehthumbs.db
 *.swp
 *.swo
 *~
+
+frontend/shots/

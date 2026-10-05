@@ -1,1 +1,6 @@
-// Root application component: wraps the router and global providers.
+import { RouterProvider } from 'react-router'
+import { router } from '@/routes'
+
+export function App() {
+  return <RouterProvider router={router} />
+}

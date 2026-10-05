@@ -1,1 +1,10 @@
-// React application entrypoint: mounts App into the DOM root.
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { App } from '@/App'
+import '@/core/styles/global.css'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
