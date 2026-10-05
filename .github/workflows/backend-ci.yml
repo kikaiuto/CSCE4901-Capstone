@@ -1,1 +1,32 @@
-# GitHub Actions workflow: lint, type-check, and test the backend. TODO: configure
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - run: pip install ruff==0.16.10
+
+      - run: ruff check --per-file-ignores '**/__manifest__.py:B018' .
+
+      - run: python -m compileall -q app tests
