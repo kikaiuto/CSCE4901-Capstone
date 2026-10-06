@@ -1,5 +1,15 @@
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceDot,
+  ReferenceLine,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { CHART_MARGIN, axisTick, gridProps, niceMax } from './chartTheme'
+import { indexFromChartState } from './useSyncedHover'
 
 export interface TrendPoint {
   label: string
@@ -11,6 +21,7 @@ export interface TrendLineProps {
   color: string
   format: (value: number) => string
   showCategories?: boolean
+  activeIndex?: number | null
   onActiveIndexChange?: (index: number | null) => void
 }
 
@@ -19,9 +30,11 @@ export function TrendLine({
   color,
   format,
   showCategories = true,
+  activeIndex,
   onActiveIndexChange,
 }: TrendLineProps) {
   const peak = Math.max(...data.map((point) => point.value))
+  const active = activeIndex == null ? undefined : data[activeIndex]
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -29,10 +42,7 @@ export function TrendLine({
         accessibilityLayer
         data={data}
         margin={CHART_MARGIN}
-        onMouseMove={(state) => {
-          const next = typeof state.activeTooltipIndex === 'number' ? state.activeTooltipIndex : null
-          onActiveIndexChange?.(next)
-        }}
+        onMouseMove={(state) => onActiveIndexChange?.(indexFromChartState(state))}
         onMouseLeave={() => onActiveIndexChange?.(null)}
       >
         <CartesianGrid {...gridProps} />
@@ -59,6 +69,8 @@ export function TrendLine({
           dot={false}
           activeDot={{ r: 3, fill: color }}
         />
+        {active && <ReferenceLine x={active.label} stroke="var(--color-line-strong)" />}
+        {active && <ReferenceDot x={active.label} y={active.value} r={3} fill={color} stroke="none" />}
       </LineChart>
     </ResponsiveContainer>
   )

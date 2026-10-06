@@ -143,6 +143,7 @@ export function ProfitLossScreen() {
                 color={chartColor.highlight}
                 format={(value) => `${value}%`}
                 showCategories={false}
+                activeIndex={hover.activeIndex}
                 onActiveIndexChange={hover.setActiveIndex}
               />
             </div>

@@ -2,6 +2,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ChartTooltip } from './ChartTooltip'
 import { CHART_MARGIN, axisTick, gridProps, niceMax } from './chartTheme'
 import type { SeriesMeta } from './ChartLegend'
+import { indexFromChartState } from './useSyncedHover'
 
 export interface ComparisonPoint {
   label: string
@@ -35,10 +36,7 @@ export function ComparisonBars({
         accessibilityLayer
         data={data}
         margin={CHART_MARGIN}
-        onMouseMove={(state) => {
-          const next = typeof state.activeTooltipIndex === 'number' ? state.activeTooltipIndex : null
-          onActiveIndexChange?.(next)
-        }}
+        onMouseMove={(state) => onActiveIndexChange?.(indexFromChartState(state))}
         onMouseLeave={() => onActiveIndexChange?.(null)}
       >
         <CartesianGrid {...gridProps} />

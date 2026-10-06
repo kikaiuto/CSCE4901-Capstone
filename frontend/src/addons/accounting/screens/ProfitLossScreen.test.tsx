@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
@@ -27,6 +27,26 @@ describe('ProfitLossScreen', () => {
     for (const chart of container.querySelectorAll('.recharts-wrapper')) {
       expect(chart.querySelectorAll('.recharts-yAxis').length).toBeLessThanOrEqual(1)
     }
+  })
+
+  it('highlights the margin line when the bars are hovered', async () => {
+    const { container } = renderWithRouter(<ProfitLossScreen />)
+    const [bars] = container.querySelectorAll('.recharts-wrapper')
+
+    expect(container.querySelector('.recharts-reference-dot')).not.toBeInTheDocument()
+
+    fireEvent.mouseMove(bars, { clientX: 200, clientY: 100 })
+
+    await waitFor(() => {
+      expect(container.querySelector('.recharts-reference-dot')).toBeInTheDocument()
+    })
+    expect(screen.getByRole('status')).toHaveTextContent(/net margin/)
+
+    fireEvent.mouseLeave(bars)
+
+    await waitFor(() => {
+      expect(container.querySelector('.recharts-reference-dot')).not.toBeInTheDocument()
+    })
   })
 
   it('names every series in the legend, so colour carries nothing alone', () => {
