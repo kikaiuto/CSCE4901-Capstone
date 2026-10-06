@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts'
 import { CHART_MARGIN, axisTick, gridProps, niceMax } from './chartTheme'
+import { indexFromChartState } from './useSyncedHover'
 
 export interface StockPoint {
   label: string
@@ -62,10 +63,7 @@ export function StepAreaChart({
         accessibilityLayer
         data={data}
         margin={CHART_MARGIN}
-        onMouseMove={(state) => {
-          const next = typeof state.activeTooltipIndex === 'number' ? state.activeTooltipIndex : null
-          onActiveIndexChange?.(next)
-        }}
+        onMouseMove={(state) => onActiveIndexChange?.(indexFromChartState(state))}
         onMouseLeave={() => onActiveIndexChange?.(null)}
       >
         <CartesianGrid {...gridProps} />
