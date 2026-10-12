@@ -8,7 +8,7 @@ dict literal with these keys:
     summary        one line describing what the addon owns
     track          owning sprint track: PLT, SLS, INV, ACC, or AIX
     depends        addon names this addon may import from
-    screens        screen IDs this addon implements, S-01 through S-10
+    screens        screen IDs this addon implements, S-01 through S-13
     requirements   requirement IDs this addon satisfies, R1 through R32
     features       feature IDs, F1 through F20
     router         module name holding the addon's APIRouter

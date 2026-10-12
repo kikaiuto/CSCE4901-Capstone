@@ -69,8 +69,9 @@ may become a package when it outgrows one file (`models/product.py`,
 ## Addon dependencies
 
 An addon may import only from `app.core` and from the addons listed in its own
-manifest's `depends`. `backend/tests/architecture/test_addon_deps.py` enforces
-this, so an undeclared import fails CI rather than review.
+manifest's `depends`. `backend/tests/architecture/test_addon_deps.py` is meant to
+enforce this so an undeclared import fails CI rather than review, but it is not
+written yet. Until it is, review is the only check on the backend.
 
 `ai` and `home` depend on `base` alone. They reach the operational addons through
 the read-only contracts in `app/core/contracts/` and the categories in
@@ -96,7 +97,7 @@ addons without a rail destination, such as `ai` and `forecasting`, omit it.
 **An addon may import from `@/core` and from the addons in its own `depends`,
 nothing else.** `src/core/app/addonDeps.test.ts` enforces this and also rejects
 cycles, so an undeclared import fails the suite rather than review. It is the
-counterpart to `backend/tests/architecture/test_addon_deps.py`, and it exists
+counterpart to the planned `backend/tests/architecture/test_addon_deps.py`, and it exists
 because the first version of the S-05 forecast overlay had `inventory` importing
 `forecasting`, inverting the declared direction with nothing to catch it.
 
