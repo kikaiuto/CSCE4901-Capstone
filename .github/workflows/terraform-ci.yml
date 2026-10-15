@@ -29,7 +29,7 @@ jobs:
 
       - name: terraform validate
         run: |
-          for module in modules/*/; do
+          for module in bootstrap/ modules/*/; do
             echo "::group::$module"
             terraform -chdir="$module" init -backend=false -input=false
             terraform -chdir="$module" validate

@@ -1,2 +1,126 @@
-# Local development stack: backend, frontend, PostgreSQL, Redis, Celery worker.
-# TODO: configure
+name: sector7
+
+x-backend-build: &backend-build
+  context: ./backend
+  target: dev
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://sector7:sector7@postgres:5432/sector7
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me}
+  JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-60}
+  LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+  LLM_MODEL: ${LLM_MODEL:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  ENVIRONMENT: local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: sector7
+      POSTGRES_PASSWORD: sector7
+      POSTGRES_DB: sector7
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sector7 -d sector7"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build: *backend-build
+    command: ["alembic", "upgrade", "head"]
+    environment: *backend-env
+    volumes:
+      - ./backend:/srv/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build: *backend-build
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
+    environment: *backend-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/srv/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build: *backend-build
+    command:
+      [
+        "celery",
+        "-A",
+        "app.workers.celery_app:celery_app",
+        "worker",
+        "--loglevel=info",
+      ]
+    environment: *backend-env
+    volumes:
+      - ./backend:/srv/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/srv/app
+      - frontend_node_modules:/srv/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  frontend_node_modules:

@@ -17,8 +17,8 @@ Where things stand today:
 | Part | State |
 | --- | --- |
 | Frontend | Built. Every screen renders from fixture data, and CI lints, typechecks, tests and builds it. |
-| Backend | Skeleton. The addon layout and manifests exist; the API and the architecture tests are not written yet. |
-| Infra | Placeholder. `docker-compose.yml`, `Makefile`, and the Terraform files are not configured yet. |
+| Backend | Skeleton. The addon layout and manifests exist, and the app boots with a `/health` route; the API and the architecture tests are not written yet. |
+| Infra | Local stack runs under `docker-compose.yml` with `make up`. The Terraform modules are still stubs; see [`docs/infra/aws-account-setup.md`](docs/infra/aws-account-setup.md) for the AWS plan. |
 
 Because there is no API yet, any button that would write data is rendered
 visibly inert: dashed border, a leading ✕, and a "Not wired up yet" tooltip. When you build
@@ -59,20 +59,41 @@ Further reading:
 
 ## Prerequisites
 
-- Node 24 and npm, for the frontend
-
-The backend has no runnable setup yet; `pyproject.toml` is still a placeholder.
+- Docker Desktop, for the full stack
+- Node 24 and npm, if you want to run the frontend outside Docker
 
 ## Getting Started
+
+The whole stack runs in Docker: PostgreSQL, Redis, the FastAPI backend, the
+Celery worker, and the Vite dev server.
+
+```
+cp .env.example .env
+make up
+```
+
+| Service | URL |
+| --- | --- |
+| Frontend | <http://localhost:5173> |
+| Backend health | <http://localhost:8000/health> |
+| API docs | <http://localhost:8000/docs> |
+
+Both the backend and the frontend bind-mount the source tree, so edits reload
+without a rebuild. `make logs` tails everything, `make down` stops it, and
+`make clean` also drops the database volume. `make test` and `make lint` run
+both suites inside the containers.
+
+The sign-in screen goes straight through; there is no real authentication yet.
+Migrations run automatically on `make up`; `make revision m="add products"`
+generates a new one once there are models to migrate.
+
+To run only the frontend without Docker:
 
 ```
 cd frontend
 npm ci
 npm run dev
 ```
-
-Open the URL Vite prints. The sign-in screen goes straight through; there is no
-real authentication yet.
 
 ### Where to start
 
