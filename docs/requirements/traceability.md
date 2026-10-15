@@ -6,7 +6,8 @@ scheduled for.
 Names and priorities are transcribed from `Sector7-AI-Product-Requirements.docx`.
 Addon names are the eight listed in `docs/architecture.md`; the authoritative mapping is the
 `requirements` key of each `backend/app/addons/<name>/__manifest__.py`, and
-`backend/tests/architecture/test_manifests.py` asserts the two agree.
+`backend/tests/architecture/test_manifests.py` is meant to assert the two agree. It is
+not written yet, so keep them in sync by hand.
 
 Priority: 1 high (MVP must ship it), 2 medium (planned within the nine-month
 window), 3 low (nice if time allows).

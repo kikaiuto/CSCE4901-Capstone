@@ -16,8 +16,8 @@ branch of information architecture diagram D-03.
 | --- | --- | --- | --- |
 | `base` | PLT | S-01, S-09 | — |
 | `inventory` | INV | S-05 | `base` |
-| `accounting` | ACC | S-07, S-10 | `base` |
-| `sales` | SLS | S-03, S-04 | `base`, `inventory`, `accounting` |
+| `accounting` | ACC | S-07, S-10, S-13 | `base` |
+| `sales` | SLS | S-03, S-04, S-11, S-12 | `base`, `inventory`, `accounting` |
 | `procurement` | INV | S-06 | `base`, `inventory`, `accounting` |
 | `forecasting` | AIX | S-05 overlay | `base`, `sales`, `inventory` |
 | `ai` | AIX | S-08 | `base` |
