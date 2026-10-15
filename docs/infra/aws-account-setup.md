@@ -13,7 +13,7 @@ Do this from one laptop, in a private browser window.
 1. Go to <https://portal.aws.amazon.com/billing/signup>.
 2. Email: use a shared mailbox or a plus alias you control, not a personal
    university address that expires at graduation. Example:
-   `sector7-aws@<domain>` or `<you>+aws-root@proton.me`. The root email is
+   `sector7-aws@<domain>` or `<you>+aws-root@<your-mail-provider>`. The root email is
    the recovery path for the whole account, so it has to outlive the course.
 3. Account name: `sector7-ai`.
 4. Root password: generate a 30+ character one in a password manager. Store it
