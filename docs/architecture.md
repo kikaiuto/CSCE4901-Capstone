@@ -26,9 +26,8 @@ branch of information architecture diagram D-03.
 Each addon declares its dependencies in `__manifest__.py`. `core/modules/graph.py`
 resolves the declarations into a load order and rejects cycles;
 `core/modules/loading.py` mounts each addon's router in that order. An addon may
-import only from `app.core` and from the addons it declared.
-`backend/tests/architecture/test_addon_deps.py` is meant to fail the build
-otherwise; it is not written yet.
+import only from `app.core` and from the addons it declared, and
+`backend/tests/architecture/test_addon_deps.py` fails the build otherwise.
 
 Load order:
 
@@ -54,9 +53,8 @@ importing another addon's `service.py`.
 ## AI Layer Isolation
 
 `addons/ai/` is read-only and isolated. It declares `base` as its only
-dependency, so once the dependency test is written the rule becomes enforceable
-rather than advisory: any import reaching a core ORM model or DB session will
-fail CI.
+dependency, so the dependency test makes the rule enforceable rather than
+advisory: any import reaching a core ORM model or DB session fails CI.
 
 The assistant sees the operational addons only through
 `core/contracts/assistant.py`, whose methods are parameterized tools that take
