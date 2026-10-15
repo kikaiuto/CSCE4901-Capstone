@@ -101,6 +101,11 @@ carry the `unwired` prop and render visibly inert.
 
 ## Deployment Topology
 
+The AWS account, who can sign in to it, and where secrets live are covered in
+[infra/aws-account-setup.md](infra/aws-account-setup.md). The first Terraform to
+apply is `infra/terraform/bootstrap/`, which creates the state bucket and the
+GitHub Actions role; the `modules/` directories are still stubs.
+
 ## Observability
 
 ## Security Considerations
