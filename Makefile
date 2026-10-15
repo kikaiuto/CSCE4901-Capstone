@@ -25,7 +25,7 @@ revision:
 	docker compose run --rm migrate alembic revision --autogenerate -m "$(m)"
 
 test:
-	docker compose run --rm --no-deps backend sh -c "pytest || [ \$$? -eq 5 ]"
+	docker compose run --rm --no-deps backend pytest
 	docker compose run --rm --no-deps frontend npm test
 
 lint:

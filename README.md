@@ -31,7 +31,7 @@ so forgetting fails the suite.
 backend/app/
   core/            framework: manifest loading, dependency graph, registry, contracts
   addons/<name>/   business code, one folder per addon
-backend/tests/     architecture tests (specified, not yet written)
+backend/tests/     architecture tests (the import check is written, the manifest check is not)
 
 frontend/src/
   core/            app shell, UI primitives, charts, lib, styles, test harness
@@ -45,8 +45,9 @@ server, and the AI layer is read-only. Read it before your first change.
 
 The most important rule for finding your way around: **an addon may import only
 from core and from the addons listed in its own manifest's `depends`.** On the
-frontend, `src/core/app/addonDeps.test.ts` enforces this, so an undeclared import
-fails CI; the backend counterpart is still to be written. If you need data from
+frontend, `src/core/app/addonDeps.test.ts` enforces this, and on the backend
+`tests/architecture/test_addon_deps.py` does, so an undeclared import fails CI on
+either side. If you need data from
 another addon, go through `core` (the registry or the contracts), not a direct
 import.
 
@@ -121,6 +122,10 @@ npm run build
 ```
 
 These are the same four steps CI runs on every pull request that touches
-`frontend/`. The backend has no tests to run yet.
+`frontend/`.
+
+Backend: `make test` runs pytest in the backend container, and CI runs it on every
+pull request that touches `backend/`. A run that finds no tests fails rather than
+passing.
 
 ## Team
