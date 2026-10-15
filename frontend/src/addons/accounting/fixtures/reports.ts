@@ -53,6 +53,50 @@ export const statement: StatementRow[] = [
 
 export const statementColumns = ['Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026']
 
+export interface StatementEntry {
+  id: string
+  reference: string
+  date: string
+  memo: string
+  amount: string
+  source: 'auto' | 'manual'
+}
+
+export interface StatementDerivation {
+  minuend: string
+  subtrahend: string
+}
+
+export const statementPeriod = statementColumns[statementColumns.length - 1]
+
+export const statementEntries: Record<string, StatementEntry[]> = {
+  revenue: [
+    { id: 'se-r1', reference: 'JE-0171', date: '2026-09-04', memo: 'Invoice SO-1040', amount: '12650.00', source: 'auto' },
+    { id: 'se-r2', reference: 'JE-0175', date: '2026-09-10', memo: 'Invoice SO-1041', amount: '9870.00', source: 'auto' },
+    { id: 'se-r3', reference: 'JE-0179', date: '2026-09-16', memo: 'Invoice SO-1042', amount: '15400.00', source: 'auto' },
+    { id: 'se-r4', reference: 'JE-0183', date: '2026-09-21', memo: 'Invoice SO-1043', amount: '8800.00', source: 'auto' },
+    { id: 'se-r5', reference: 'JE-0187', date: '2026-09-27', memo: 'Invoice SO-1039', amount: '1480.00', source: 'auto' },
+  ],
+  cogs: [
+    { id: 'se-c1', reference: 'JE-0171', date: '2026-09-04', memo: 'Cost of goods SO-1040', amount: '8310.00', source: 'auto' },
+    { id: 'se-c2', reference: 'JE-0175', date: '2026-09-10', memo: 'Cost of goods SO-1041', amount: '6490.00', source: 'auto' },
+    { id: 'se-c3', reference: 'JE-0179', date: '2026-09-16', memo: 'Cost of goods SO-1042', amount: '10120.00', source: 'auto' },
+    { id: 'se-c4', reference: 'JE-0183', date: '2026-09-21', memo: 'Cost of goods SO-1043', amount: '5820.00', source: 'auto' },
+    { id: 'se-c5', reference: 'JE-0187', date: '2026-09-27', memo: 'Cost of goods SO-1039', amount: '960.00', source: 'auto' },
+  ],
+  opex: [
+    { id: 'se-o1', reference: 'JE-0172', date: '2026-09-05', memo: 'Payroll, September', amount: '5600.00', source: 'manual' },
+    { id: 'se-o2', reference: 'JE-0177', date: '2026-09-12', memo: 'Utilities, September', amount: '640.00', source: 'manual' },
+    { id: 'se-o3', reference: 'JE-0181', date: '2026-09-18', memo: 'Software subscriptions', amount: '560.00', source: 'manual' },
+    { id: 'se-o4', reference: 'JE-0186', date: '2026-09-25', memo: 'Rent, September', amount: '2400.00', source: 'manual' },
+  ],
+}
+
+export const statementDerivations: Record<string, StatementDerivation> = {
+  gross: { minuend: 'revenue', subtrahend: 'cogs' },
+  net: { minuend: 'gross', subtrahend: 'opex' },
+}
+
 export const receivablesAging = {
   total: '12940.00',
   buckets: [
