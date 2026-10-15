@@ -82,6 +82,52 @@ describe('ProfitLossScreen', () => {
     expect(within(table).getByRole('rowheader', { name: 'Q3' })).toBeInTheDocument()
   })
 
+  it('opens a statement row to the journal entries behind its current figure', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<ProfitLossScreen />)
+
+    const toggle = screen.getByRole('button', { name: 'Revenue' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('JE-0187')).not.toBeInTheDocument()
+
+    await user.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('5 entries post to Revenue in Sep 2026')).toBeInTheDocument()
+    expect(screen.getByText('JE-0187')).toBeInTheDocument()
+    expect(screen.getByText('Invoice SO-1039')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Open in journal/ })).toHaveAttribute(
+      'href',
+      '/accounting/journal',
+    )
+  })
+
+  it('explains a derived row instead of listing entries', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<ProfitLossScreen />)
+
+    await user.click(screen.getByRole('button', { name: 'Gross profit' }))
+
+    expect(screen.getByText(/Gross profit for Sep 2026 is derived/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Open in journal/ })).not.toBeInTheDocument()
+  })
+
+  it('closes an open row on a second click and swaps rows on another', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<ProfitLossScreen />)
+
+    const revenue = screen.getByRole('button', { name: 'Revenue' })
+    await user.click(revenue)
+    await user.click(revenue)
+    expect(revenue).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('JE-0187')).not.toBeInTheDocument()
+
+    await user.click(revenue)
+    await user.click(screen.getByRole('button', { name: 'Operating expenses' }))
+    expect(revenue).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('Rent, September')).toBeInTheDocument()
+  })
+
   it('leaves export and the reminder action unwired', () => {
     renderWithRouter(<ProfitLossScreen />)
 

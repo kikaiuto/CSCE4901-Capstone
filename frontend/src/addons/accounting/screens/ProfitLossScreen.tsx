@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Button } from '@/core/components/ui/Button'
 import { SelectShell } from '@/core/components/ui/Field'
 import { Figure } from '@/core/components/ui/Figure'
+import { Icon } from '@/core/components/ui/Icon'
 import { PageHeader } from '@/core/components/ui/PageHeader'
 import { SectionNav } from '@/core/components/ui/SectionNav'
 import { SegmentedControl } from '@/core/components/ui/SegmentedControl'
@@ -18,6 +19,7 @@ import {
 import { cn } from '@/core/lib/cn'
 import { compactMoney } from '@/core/lib/decimal'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
+import { StatementDetail } from '../components/StatementDetail'
 import { ACCOUNTING_SECTIONS } from '../sections'
 import {
   headline,
@@ -48,6 +50,7 @@ const AGING_COLORS = [
 
 export function ProfitLossScreen() {
   const [cadence, setCadence] = useState<ReportCadence>('month')
+  const [openRow, setOpenRow] = useState<string | null>(null)
   const hover = useSyncedHover()
   const fresh = useFirstVisit('accounting/profit-loss')
 
@@ -197,20 +200,54 @@ export function ProfitLossScreen() {
             ))}
           </ColumnHeaders>
           <TBody>
-            {statement.map((row) => (
-              <Tr key={row.id}>
-                <Td className={cn('pl-3', row.emphasis && 'font-medium')}>{row.label}</Td>
-                {row.values.map((value, index) => (
-                  <Td
-                    key={statementColumns[index]}
-                    align="right"
-                    className={cn(index === row.values.length - 1 && 'bg-raised')}
-                  >
-                    <Figure value={value} places={0} tone={row.emphasis ? 'default' : 'muted'} />
-                  </Td>
-                ))}
-              </Tr>
-            ))}
+            {statement.map((row) => {
+              const open = openRow === row.id
+              const detailId = `statement-detail-${row.id}`
+
+              return (
+                <Fragment key={row.id}>
+                  <Tr>
+                    <Td className="pl-3">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={open ? detailId : undefined}
+                        onClick={() => setOpenRow(open ? null : row.id)}
+                        className={cn(
+                          'flex items-center gap-1.5 text-left',
+                          row.emphasis && 'font-medium',
+                        )}
+                      >
+                        <Icon
+                          name="chevron-right"
+                          className={cn(
+                            'size-3.5 text-ink-faint motion-safe:transition-transform',
+                            open && 'rotate-90',
+                          )}
+                        />
+                        {row.label}
+                      </button>
+                    </Td>
+                    {row.values.map((value, index) => (
+                      <Td
+                        key={statementColumns[index]}
+                        align="right"
+                        className={cn(index === row.values.length - 1 && 'bg-raised')}
+                      >
+                        <Figure value={value} places={0} tone={row.emphasis ? 'default' : 'muted'} />
+                      </Td>
+                    ))}
+                  </Tr>
+                  {open && (
+                    <Tr className="hover:bg-transparent">
+                      <Td id={detailId} colSpan={statementColumns.length + 1} className="bg-raised p-0">
+                        <StatementDetail row={row} rows={statement} />
+                      </Td>
+                    </Tr>
+                  )}
+                </Fragment>
+              )
+            })}
           </TBody>
         </Table>
       </section>
