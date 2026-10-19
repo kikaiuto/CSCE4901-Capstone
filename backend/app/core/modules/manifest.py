@@ -18,3 +18,54 @@ dict literal with these keys:
 Manifests are read as literals rather than imported, so the dependency graph can
 be built without executing addon code or triggering import side effects.
 """
+
+import ast
+from dataclasses import dataclass
+from pathlib import Path
+
+TRACKS = frozenset({"PLT", "SLS", "INV", "ACC", "AIX"})
+_LIST_KEYS = ("depends", "screens", "requirements", "features", "models", "seeds")
+REQUIRED_KEYS = frozenset({"name", "label", "summary", "track", "router", *_LIST_KEYS})
+
+
+class ManifestError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class Manifest:
+    name: str
+    label: str
+    summary: str
+    track: str
+    depends: tuple[str, ...]
+    screens: tuple[str, ...]
+    requirements: tuple[str, ...]
+    features: tuple[str, ...]
+    router: str
+    models: tuple[str, ...]
+    seeds: tuple[str, ...]
+
+
+def read_manifest(addon_dir: Path) -> Manifest:
+    path = addon_dir / "__manifest__.py"
+    try:
+        data = ast.literal_eval(path.read_text(encoding="utf-8"))
+    except (SyntaxError, ValueError) as exc:
+        raise ManifestError(f"{path}: not a dict literal") from exc
+    if not isinstance(data, dict):
+        raise ManifestError(f"{path}: not a dict literal")
+
+    missing = REQUIRED_KEYS - data.keys()
+    unknown = data.keys() - REQUIRED_KEYS
+    if missing or unknown:
+        raise ManifestError(f"{path}: missing {sorted(missing)}, unknown {sorted(unknown)}")
+    if data["name"] != addon_dir.name:
+        raise ManifestError(f"{path}: name {data['name']!r} does not match its folder")
+    if data["track"] not in TRACKS:
+        raise ManifestError(f"{path}: unknown track {data['track']!r}")
+    for key in _LIST_KEYS:
+        if not isinstance(data[key], list) or not all(isinstance(v, str) for v in data[key]):
+            raise ManifestError(f"{path}: {key} must be a list of strings")
+
+    return Manifest(**{k: tuple(v) if k in _LIST_KEYS else v for k, v in data.items()})

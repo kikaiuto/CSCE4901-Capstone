@@ -2,7 +2,6 @@ name: backend-ci
 
 on:
   push:
-    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
@@ -36,4 +35,4 @@ jobs:
       - run: uv run python -m compileall -q app tests
 
       - name: pytest
-        run: uv run pytest || [ $? -eq 5 ]
+        run: uv run pytest
