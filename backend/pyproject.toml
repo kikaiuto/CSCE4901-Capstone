@@ -12,6 +12,8 @@ dependencies = [
     "alembic>=1.14",
     "celery[redis]>=5.4",
     "redis>=5.2",
+    "argon2-cffi>=23.1",
+    "pyjwt>=2.10",
 ]
 
 [dependency-groups]
