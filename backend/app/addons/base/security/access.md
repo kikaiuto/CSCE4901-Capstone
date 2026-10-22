@@ -1,10 +1,12 @@
-# Access matrix — `base`
+# Base endpoint access
 
-Roles are defined in `app/core/rbac.py`. `RBACGuard` reads this matrix; the UI only
-hides what a role cannot use.
-
-Requirements: R1, R2, R3, R4.
+The six application roles live in `core/roles.py`. Policies are declared in
+`base/permissions.py` and enforced by `RBACGuard` on the server.
 
 | Action | Owner | Admin | Sales | Inventory | Purchasing | Accounting |
 | --- | --- | --- | --- | --- | --- | --- |
-| _TODO: one row per endpoint_ |  |  |  |  |  |  |
+| Read current identity | Yes | Yes | Yes | Yes | Yes | Yes |
+| List organization users | Yes | Yes | No | No | No | No |
+
+Login is public and checks credentials for the supplied organization. User
+creation, invitations, and role updates have no endpoints yet.

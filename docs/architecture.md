@@ -6,6 +6,24 @@
 
 ## Multi-Tenancy Model
 
+The existing shared schema is retained. `organizations.organization_id` identifies
+an organization; every other mapped table inherits `TenantScoped` and carries
+an indexed `organization_id`. Composite foreign keys also tie related records
+to the same organization.
+
+The router loader installs `get_tenant_session` on every tenant router. It verifies
+the token, binds the session to its organization, and calls the identity check
+registered by the base addon. That check rejects a missing or inactive user or a
+role that no longer matches the token. Core does not import business addons.
+
+ORM hooks add tenant criteria to selects, updates, and deletes. Flush checks stop
+foreign-tenant inserts, updates, deletes, and foreign references. Unsupported
+bulk writes are rejected. Raw SQL and Table-level statements are not covered by
+these hooks and are prohibited in addons by architecture checks.
+
+Login is a public route with an explicitly organization-scoped lookup. It is the
+current exception to using a bound session. Organization creation is not built yet.
+
 ## Module Boundaries
 
 Business code lives in addons under `backend/app/addons/`. Framework code lives in
@@ -70,7 +88,33 @@ Non-functional: NF8, NF9, NF11.
 
 ## Data Model
 
+The database foundation's plural table names, UUID column names, and composite
+foreign keys are preserved. Roles remain tenant-owned rows referenced by users;
+`core.roles.Role` is the application's six-role vocabulary. Legacy title-cased
+names and `Warehouse` are translated at the authentication boundary.
+
+`eb867def2d3c` remains the migration root. `9f3c2a1b7d60` adds user display names,
+active status, tenant indexes, and NUMERIC(15,2) journal amounts. Unit costs remain
+NUMERIC(12,4). This avoids replacing an initial migration a teammate may have run.
+
 ## Authentication and Authorization
+
+Passwords use Argon2id with m=65536, t=3, p=4. HS256 access tokens contain the user,
+organization, role, issuer, audience, issue time, activation time, and expiry.
+Signing requires a secret of at least 32 bytes. Non-local configurations also
+reject the public local-development default.
+
+`RBACGuard` accepts explicit roles, with endpoint policies in each addon's
+`permissions.py` and documented in `security/access.md`. The identity check reads
+the account on every authenticated request, so deactivation, deletion, and role
+changes take effect before an existing token expires.
+
+`get_tenant_session` commits a successful request and rolls back on failure.
+Contracts receive that same session through `provide()`. Implementations flush
+but do not commit, preserving one transaction across future cross-module calls.
+
+See [the integration walkthrough](sprint1-foundation-integration.md) for routes,
+validation commands, and the boundary between implemented and planned work.
 
 ## Background Jobs
 

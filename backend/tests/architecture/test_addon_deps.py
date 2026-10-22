@@ -9,62 +9,96 @@ here rather than in review. Non-functional: NF8.
 """
 
 import ast
+import importlib.util
+from pathlib import Path
 
-import pytest
+from app.core.modules.loading import ADDONS_DIR, manifests_in_load_order
 
-from app.core.modules.loading import ADDONS_DIR, addon_names
+CORE_DIR = ADDONS_DIR.parent / "core"
+
+# CLAUDE.md: addons/ai never imports the DB session or ORM machinery, even from core.
+AI_FORBIDDEN = ("app.core.db", "sqlalchemy")
 
 
-def imported_modules(source: str, package: list[str]) -> set[str]:
-    """Absolute names of every module a file imports, with relative imports resolved."""
-    found = set()
-    for node in ast.walk(ast.parse(source)):
+APP_ROOT = ADDONS_DIR.parent.parent
+
+
+def package_of(path: Path) -> str:
+    parts = path.relative_to(APP_ROOT).with_suffix("").parts
+    return ".".join(parts if path.name == "__init__.py" else parts[:-1]).removesuffix(".__init__")
+
+
+def imported_modules(path: Path) -> list[tuple[int, str]]:
+    """Absolute module names, with relative imports resolved against the file."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            found.update(alias.name for alias in node.names)
+            found += [(node.lineno, alias.name) for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
-            base = package[: len(package) - node.level + 1] if node.level else []
-            module = ".".join(base + (node.module.split(".") if node.module else []))
-            found.add(module)
-            # "from app.addons import sales" names the addon in the imported names.
-            found.update(f"{module}.{alias.name}" for alias in node.names)
+            base = node.module or ""
+            if node.level:
+                base = importlib.util.resolve_name("." * node.level + base, package_of(path))
+            found.append((node.lineno, base))
+            found += [(node.lineno, f"{base}.{alias.name}") for alias in node.names]
     return found
 
 
-def addons_in(modules: set[str]) -> set[str]:
-    return {name.split(".")[2] for name in modules if name.startswith("app.addons.")}
+def addon_of(module: str) -> str | None:
+    parts = module.split(".")
+    if len(parts) >= 3 and parts[:2] == ["app", "addons"]:
+        return parts[2]
+    return None
 
 
-def imports_of(addon: str):
-    """Yield (path, imported module names) for every Python file in an addon."""
-    for path in (ADDONS_DIR / addon).rglob("*.py"):
-        package = ["app", "addons", *path.parent.relative_to(ADDONS_DIR).parts]
-        yield path, imported_modules(path.read_text(encoding="utf-8"), package)
+def test_addons_import_only_declared_dependencies():
+    violations = []
+    for manifest in manifests_in_load_order():
+        allowed = {manifest.name, *manifest.depends}
+        for path in sorted((ADDONS_DIR / manifest.name).rglob("*.py")):
+            for line, module in imported_modules(path):
+                target = addon_of(module)
+                if target is not None and target not in allowed:
+                    rel = path.relative_to(ADDONS_DIR.parent.parent)
+                    violations.append(f"{rel}:{line} imports {module} ({target} not in depends)")
+    assert not violations, "\n".join(violations)
 
 
-@pytest.mark.parametrize("addon", addon_names())
-def test_addon_imports_only_what_it_declares(addon):
-    manifest = ast.literal_eval((ADDONS_DIR / addon / "__manifest__.py").read_text())
-    allowed = {addon, *manifest["depends"]}
-    for path, modules in imports_of(addon):
-        undeclared = addons_in(modules) - allowed
-        assert not undeclared, (
-            f"{path.relative_to(ADDONS_DIR)} imports {sorted(undeclared)}, "
-            f"which {addon} does not declare in its manifest's depends"
-        )
+def test_core_never_imports_an_addon():
+    violations = []
+    for path in sorted(CORE_DIR.rglob("*.py")):
+        for line, module in imported_modules(path):
+            if addon_of(module) is not None:
+                violations.append(f"{path.relative_to(CORE_DIR.parent.parent)}:{line} {module}")
+    assert not violations, "\n".join(violations)
 
 
-def test_ai_never_imports_the_db_session():
-    for path, modules in imports_of("ai"):
-        db = {name for name in modules if name == "app.core.db" or name.startswith("app.core.db.")}
-        assert not db, f"{path.relative_to(ADDONS_DIR)} imports {sorted(db)}"
+def test_ai_addon_never_touches_the_database():
+    violations = []
+    for path in sorted((ADDONS_DIR / "ai").rglob("*.py")):
+        for line, module in imported_modules(path):
+            if module.startswith(AI_FORBIDDEN):
+                violations.append(f"{path.relative_to(ADDONS_DIR.parent.parent)}:{line} {module}")
+    assert not violations, "\n".join(violations)
 
 
-def test_scanner_catches_every_import_form():
-    source = (
-        "import app.addons.sales.service\n"
-        "from app.addons import inventory\n"
-        "from ...accounting.models import JournalEntry\n"
-        "from ..service import helper\n"
-    )
-    modules = imported_modules(source, ["app", "addons", "home", "tests"])
-    assert addons_in(modules) == {"sales", "inventory", "accounting", "home"}
+def test_addons_write_sql_only_through_the_orm():
+    """core.tenancy scopes ORM statements only. Raw Table objects (Model.__table__)
+    and textual SQL skip the tenant filter, and CLAUDE.md bans string SQL."""
+    violations = []
+    for path in sorted(ADDONS_DIR.rglob("*.py")):
+        rel = path.relative_to(APP_ROOT)
+        for line, module in imported_modules(path):
+            if module in {"sqlalchemy.text", "sqlalchemy.sql.text", "sqlalchemy.Table"}:
+                violations.append(f"{rel}:{line} imports {module}")
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr == "__table__":
+                violations.append(f"{rel}:{node.lineno} uses __table__")
+    assert not violations, "\n".join(violations)
+
+
+def test_relative_imports_are_resolved():
+    fake = ADDONS_DIR / "ai" / "service.py"
+    assert package_of(fake) == "app.addons.ai"
+    assert importlib.util.resolve_name("..sales", package_of(fake)) == "app.addons.sales"

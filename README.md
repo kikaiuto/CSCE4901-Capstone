@@ -17,10 +17,10 @@ Where things stand today:
 | Part | State |
 | --- | --- |
 | Frontend | Built. Every screen renders from fixture data, and CI lints, typechecks, tests and builds it. |
-| Backend | Skeleton. The addon layout and manifests exist, and the app boots with a `/health` route; the API and the architecture tests are not written yet. |
+| Backend | Database models, migrations, authentication, tenant isolation, role guards, and product-read APIs are integrated. Operational write services remain to be built. |
 | Infra | Local stack runs under `docker-compose.yml` with `make up`. The Terraform modules are still stubs; see [`docs/infra/aws-account-setup.md`](docs/infra/aws-account-setup.md) for the AWS plan. |
 
-Because there is no API yet, any button that would write data is rendered
+The frontend still uses fixtures. Any button that would write data is rendered
 visibly inert: dashed border, a leading ✕, and a "Not wired up yet" tooltip. When you build
 the endpoint behind one, remove its `unwired` prop. A test checks every screen,
 so forgetting fails the suite.
@@ -31,7 +31,7 @@ so forgetting fails the suite.
 backend/app/
   core/            framework: manifest loading, dependency graph, registry, contracts
   addons/<name>/   business code, one folder per addon
-backend/tests/     architecture tests (the import check is written, the manifest check is not)
+backend/tests/     architecture, authentication, tenant isolation, and transaction tests
 
 frontend/src/
   core/            app shell, UI primitives, charts, lib, styles, test harness
@@ -55,6 +55,7 @@ Further reading:
 
 - [`docs/architecture.md`](docs/architecture.md): module boundaries, load order,
   and how the AI layer is isolated
+- [`docs/sprint1-foundation-integration.md`](docs/sprint1-foundation-integration.md): integration decisions, request flow, and validation
 - [`docs/requirements/traceability.md`](docs/requirements/traceability.md): which
   addon owns each requirement
 
@@ -84,9 +85,13 @@ without a rebuild. `make logs` tails everything, `make down` stops it, and
 `make clean` also drops the database volume. `make test` and `make lint` run
 both suites inside the containers.
 
-The sign-in screen goes straight through; there is no real authentication yet.
+The sign-in screen still navigates straight through. Backend login is available at
+`POST /api/base/auth/login`, but connecting the screen is a separate task. Login
+currently requires an organization UUID, email, and password.
 Migrations run automatically on `make up`; `make revision m="add products"`
-generates a new one once there are models to migrate.
+generates a new one after changing models. The original database migration is
+preserved; the integration adds a follow-up migration for account status, tenant
+indexes, and ledger precision.
 
 To run only the frontend without Docker:
 
@@ -126,6 +131,7 @@ These are the same four steps CI runs on every pull request that touches
 
 Backend: `make test` runs pytest in the backend container, and CI runs it on every
 pull request that touches `backend/`. A run that finds no tests fails rather than
-passing.
+passing. CI runs migrations and tests on PostgreSQL 17, then runs the tests
+again on SQLite. See the integration notes for local test commands.
 
 ## Team
