@@ -1,72 +1,27 @@
-"""Role-Based Access Control (RBAC) for Sector 7 ERP."""
+"""Role guards shared by tenant routes."""
 
-from enum import StrEnum
+from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 
-from app.addons.base.schemas import CurrentUserResponse
-from app.addons.base.service import get_current_user
+from app.core.errors import Forbidden
+from app.core.roles import ALL_ROLES, Role
+from app.core.tenancy import TenantContext, get_tenant_context
 
-
-class Permission(StrEnum):
-    PRODUCT_READ = "inventory.products.read"
-    PRODUCT_CREATE = "inventory.products.create"
-    PRODUCT_UPDATE = "inventory.products.update"
-    PRODUCT_DELETE = "inventory.products.delete"
-    USER_MANAGE = "base.users.manage"
-
-
-ROLE_PERMISSIONS: dict[str, frozenset[Permission]] = {
-    "Owner": frozenset({
-        Permission.PRODUCT_READ,
-        Permission.PRODUCT_CREATE,
-        Permission.PRODUCT_UPDATE,
-        Permission.PRODUCT_DELETE,
-        Permission.USER_MANAGE,
-    }),
-    "Admin": frozenset({
-        Permission.PRODUCT_READ,
-        Permission.PRODUCT_CREATE,
-        Permission.PRODUCT_UPDATE,
-        Permission.PRODUCT_DELETE,
-        Permission.USER_MANAGE,
-    }),
-    "Sales": frozenset({
-        Permission.PRODUCT_READ,
-    }),
-    "Warehouse": frozenset({
-        Permission.PRODUCT_READ,
-        Permission.PRODUCT_CREATE,
-        Permission.PRODUCT_UPDATE,
-    }),
-    "Inventory": frozenset({
-        Permission.PRODUCT_READ,
-        Permission.PRODUCT_CREATE,
-        Permission.PRODUCT_UPDATE,
-    }),
-    "Purchasing": frozenset({
-        Permission.PRODUCT_READ,
-    }),
-    "Accounting": frozenset(),
-}
-
-
-def role_has_permission(role: str, permission: Permission) -> bool:
-    return permission in ROLE_PERMISSIONS.get(role, frozenset())
+__all__ = ["ALL_ROLES", "RBACGuard", "Role"]
 
 
 class RBACGuard:
-    def __init__(self, permission: Permission) -> None:
-        self.permission = permission
+    def __init__(self, *allowed: Role) -> None:
+        if not allowed:
+            raise ValueError("RBACGuard needs at least one role; use RBACGuard.any_role()")
+        self.allowed = frozenset(allowed)
 
-    async def __call__(
-        self,
-        current_user: CurrentUserResponse = Depends(get_current_user),
-    ) -> CurrentUserResponse:
-        if not role_has_permission(current_user.role, self.permission):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
-            )
+    @classmethod
+    def any_role(cls) -> "RBACGuard":
+        return cls(*ALL_ROLES)
 
-        return current_user
+    def __call__(self, ctx: Annotated[TenantContext, Depends(get_tenant_context)]) -> TenantContext:
+        if ctx.role not in self.allowed:
+            raise Forbidden(f"The {ctx.role} role cannot perform this action")
+        return ctx

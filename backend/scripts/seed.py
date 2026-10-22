@@ -22,7 +22,7 @@ from app.core.db import Base, get_engine
 from app.core.modules.loading import import_models
 
 NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://sector7.example/demo-seed/v1")
-ROLES = ("Owner", "Admin", "Sales", "Warehouse", "Accounting")
+ROLES = ("Owner", "Admin", "Sales", "Inventory", "Purchasing", "Accounting")
 ACCOUNTS = (
     ("1000", "Cash", "Asset"),
     ("1100", "Accounts Receivable", "Asset"),
@@ -62,7 +62,7 @@ async def insert_if_missing(connection, name: str, rows: list[dict]) -> None:
 def validate_local_database() -> None:
     settings = get_settings()
     url = make_url(settings.database_url)
-    env = os.environ.get("ENVIRONMENT", "local").lower()  
+    env = os.environ.get("ENVIRONMENT", "local").lower()
 
     if (
         env != "local"
@@ -81,8 +81,13 @@ async def main() -> None:
     import_models()
 
     required = {
-        "organizations", "roles", "chart_of_accounts", "customers",
-        "suppliers", "product_categories", "products",
+        "organizations",
+        "roles",
+        "chart_of_accounts",
+        "customers",
+        "suppliers",
+        "product_categories",
+        "products",
     }
     missing = required - set(Base.metadata.tables)
     if missing:
@@ -99,83 +104,112 @@ async def main() -> None:
     async with engine.begin() as conn:
         for org_name in ORGANIZATIONS:
             org_id = demo_uuid("organization", org_name)
-            await insert_if_missing(conn, "organizations", [
-                {"organization_id": org_id, "name": org_name}
-            ])
+            await insert_if_missing(
+                conn, "organizations", [{"organization_id": org_id, "name": org_name}]
+            )
 
-            await insert_if_missing(conn, "roles", [
-                {
-                    "role_id": demo_uuid(org_name, "role", role),
-                    "organization_id": org_id,
-                    "name": role,
-                }
-                for role in ROLES
-            ])
+            await insert_if_missing(
+                conn,
+                "roles",
+                [
+                    {
+                        "role_id": demo_uuid(org_name, "role", role),
+                        "organization_id": org_id,
+                        "name": role,
+                    }
+                    for role in ROLES
+                ],
+            )
 
-            await insert_if_missing(conn, "chart_of_accounts", [
-                {
-                    "account_id": demo_uuid(org_name, "account", code),
-                    "organization_id": org_id,
-                    "account_code": code,
-                    "account_name": account_name,
-                    "account_type": account_type,
-                }
-                for code, account_name, account_type in ACCOUNTS
-            ])
+            await insert_if_missing(
+                conn,
+                "chart_of_accounts",
+                [
+                    {
+                        "account_id": demo_uuid(org_name, "account", code),
+                        "organization_id": org_id,
+                        "account_code": code,
+                        "account_name": account_name,
+                        "account_type": account_type,
+                    }
+                    for code, account_name, account_type in ACCOUNTS
+                ],
+            )
 
-            await insert_if_missing(conn, "product_categories", [
-                {
-                    "category_id": demo_uuid(org_name, "category", category),
-                    "organization_id": org_id,
-                    "name": category,
-                    "hierarchy_level": 0,
-                }
-                for category in ("Laptops", "Accessories")
-            ])
+            await insert_if_missing(
+                conn,
+                "product_categories",
+                [
+                    {
+                        "category_id": demo_uuid(org_name, "category", category),
+                        "organization_id": org_id,
+                        "name": category,
+                        "hierarchy_level": 0,
+                    }
+                    for category in ("Laptops", "Accessories")
+                ],
+            )
 
-            await insert_if_missing(conn, "customers", [
-                {
-                    "customer_id": demo_uuid(org_name, "customer", str(number)),
-                    "organization_id": org_id,
-                    "name": f"Demo Customer {number}",
-                    "contact_details": f"customer{number}@example.test",
-                    "credit_status": "GOOD",
-                }
-                for number in range(1, 11)
-            ])
+            await insert_if_missing(
+                conn,
+                "customers",
+                [
+                    {
+                        "customer_id": demo_uuid(org_name, "customer", str(number)),
+                        "organization_id": org_id,
+                        "name": f"Demo Customer {number}",
+                        "contact_details": f"customer{number}@example.test",
+                        "credit_status": "GOOD",
+                    }
+                    for number in range(1, 11)
+                ],
+            )
 
-            await insert_if_missing(conn, "suppliers", [
-                {
-                    "supplier_id": demo_uuid(org_name, "supplier", str(number)),
-                    "organization_id": org_id,
-                    "name": f"Demo Supplier {number}",
-                    "supplier_terms": "Net 30",
-                    "lead_times": 7 + number,
-                }
-                for number in range(1, 4)
-            ])
+            await insert_if_missing(
+                conn,
+                "suppliers",
+                [
+                    {
+                        "supplier_id": demo_uuid(org_name, "supplier", str(number)),
+                        "organization_id": org_id,
+                        "name": f"Demo Supplier {number}",
+                        "supplier_terms": "Net 30",
+                        "lead_times": 7 + number,
+                    }
+                    for number in range(1, 4)
+                ],
+            )
 
-            await insert_if_missing(conn, "products", [
-                {
-                    "product_id": demo_uuid(org_name, "product", sku),
-                    "organization_id": org_id,
-                    "category_id": demo_uuid(org_name, "category", category),
-                    "asset_account_id": demo_uuid(org_name, "account", "1200"),
-                    "revenue_account_id": demo_uuid(org_name, "account", "4000"),
-                    "name": product_name,
-                    "sku": sku,
-                    "unit_cost": Decimal(cost),
-                    "average_cost": Decimal(cost),
-                    "unit_price": Decimal(price),
-                    "safety_stock_threshold": 5,
-                }
-                for sku, product_name, category, cost, price in PRODUCTS
-            ])
+            await insert_if_missing(
+                conn,
+                "products",
+                [
+                    {
+                        "product_id": demo_uuid(org_name, "product", sku),
+                        "organization_id": org_id,
+                        "category_id": demo_uuid(org_name, "category", category),
+                        "asset_account_id": demo_uuid(org_name, "account", "1200"),
+                        "revenue_account_id": demo_uuid(org_name, "account", "4000"),
+                        "name": product_name,
+                        "sku": sku,
+                        "unit_cost": Decimal(cost),
+                        "average_cost": Decimal(cost),
+                        "unit_price": Decimal(price),
+                        "safety_stock_threshold": 5,
+                    }
+                    for sku, product_name, category, cost, price in PRODUCTS
+                ],
+            )
 
         print("Demo foundation seeded (or already present):")
         for name in (
-            "organizations", "roles", "chart_of_accounts", "product_categories",
-            "customers", "suppliers", "products",
+            "organizations",
+            "roles",
+            "chart_of_accounts",
+            "product_categories",
+            "customers",
+            "suppliers",
+            "products",
         ):
             table = Base.metadata.tables[name]
             count = await conn.scalar(select(func.count()).select_from(table))

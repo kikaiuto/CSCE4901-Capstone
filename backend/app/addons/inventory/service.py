@@ -2,11 +2,11 @@
 
 from uuid import UUID
 
-from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.inventory import repository
 from app.addons.inventory.models import Product
+from app.core.errors import NotFound
 
 
 async def list_products(
@@ -35,9 +35,6 @@ async def get_product(
     )
 
     if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+        raise NotFound("Product not found")
 
     return product

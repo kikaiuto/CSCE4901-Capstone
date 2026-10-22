@@ -6,8 +6,8 @@ scheduled for.
 Names and priorities are transcribed from `Sector7-AI-Product-Requirements.docx`.
 Addon names are the eight listed in `docs/architecture.md`; the authoritative mapping is the
 `requirements` key of each `backend/app/addons/<name>/__manifest__.py`, and
-`backend/tests/architecture/test_manifests.py` is meant to assert the two agree. It is
-not written yet, so keep them in sync by hand.
+`backend/tests/architecture/test_manifests.py` checks manifest structure and dependency
+ordering. Requirement-to-document coverage is still maintained by hand.
 
 Priority: 1 high (MVP must ship it), 2 medium (planned within the nine-month
 window), 3 low (nice if time allows).
@@ -16,13 +16,13 @@ window), 3 low (nice if time allows).
 
 | ID | Name | Priority | Addon | Features | Semester | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| R1 | Tenant scoping | 1 | base | F1 | 4901 | Not started |
-| R2 | Secure login | 1 | base | F2 | 4901 | Not started |
-| R3 | Role-based permissions | 1 | base | F2 | 4901 | Not started |
-| R4 | User and role administration | 2 | base | F2 | 4901 | Not started |
+| R1 | Tenant scoping | 1 | base | F1 | 4901 | Backend implemented; isolation tests pass |
+| R2 | Secure login | 1 | base | F2 | 4901 | Backend login implemented; UI connection pending |
+| R3 | Role-based permissions | 1 | base | F2 | 4901 | Implemented for current endpoints; extend with new endpoints |
+| R4 | User and role administration | 2 | base | F2 | 4901 | Tenant user list only; administration writes pending |
 | R5 | Customer management | 1 | sales | F3 | 4901 | Not started |
 | R6 | Customer purchase ledger | 2 | sales | F3 | 4902 | Not started |
-| R7 | Product catalog management | 1 | inventory | F4 | 4901 | Not started |
+| R7 | Product catalog management | 1 | inventory | F4 | 4901 | Schema and product reads implemented; creation pending |
 | R8 | Tiered pricing and categories | 3 | inventory | F4 | 4902 | Not started |
 | R9 | Stock visibility | 1 | inventory | F5 | 4901 | Not started |
 | R10 | Inventory movement logging | 1 | inventory | F5, F19 | 4901 | Not started |

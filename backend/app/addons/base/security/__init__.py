@@ -1,1 +1,0 @@
-"""Authentication helpers for the base addon."""

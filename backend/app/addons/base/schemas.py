@@ -1,10 +1,10 @@
-"""Pydantic V2 request and response schemas for the base addon."""
-
 """Pydantic V2 API schemas for the base addon."""
 
 from uuid import UUID
 
 from pydantic import BaseModel, Field, SecretStr, field_validator
+
+from app.core.roles import Role
 
 
 class LoginRequest(BaseModel):
@@ -30,5 +30,5 @@ class TokenResponse(BaseModel):
 class CurrentUserResponse(BaseModel):
     user_id: UUID
     organization_id: UUID
-    role: str
+    role: Role
     email: str
