@@ -4,13 +4,14 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { SignInScreen } from './SignInScreen'
 
-function renderSignIn() {
+function renderSignIn(from?: string) {
   const router = createMemoryRouter(
     [
       { path: '/', element: <SignInScreen /> },
       { path: '/home', element: <p>Today</p> },
+      { path: '/sales/orders/:number', element: <p>Order</p> },
     ],
-    { initialEntries: ['/'] },
+    { initialEntries: [from === undefined ? '/' : { pathname: '/', state: { from } }] },
   )
 
   render(<RouterProvider router={router} />)
@@ -37,6 +38,14 @@ describe('SignInScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: /Sign in/ }))
 
     expect(router.state.location.pathname).toBe('/home')
+  })
+
+  it('returns a visitor to the screen that sent them to sign in', async () => {
+    const router = renderSignIn('/sales/orders/SO-1044')
+
+    await userEvent.click(screen.getByRole('button', { name: /Sign in/ }))
+
+    expect(router.state.location.pathname).toBe('/sales/orders/SO-1044')
   })
 
   it('submits on Enter from the password field', async () => {

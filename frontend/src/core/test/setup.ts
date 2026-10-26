@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeAll } from 'vitest'
+import { afterEach, beforeAll, beforeEach } from 'vitest'
+import { signIn, signOut } from '@/core/app/session'
 import { resetFirstVisits } from '@/core/lib/useFirstVisit'
+import { demoSession } from '@/addons/base/fixtures/org'
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -42,7 +44,12 @@ beforeAll(() => {
   }
 })
 
+beforeEach(() => {
+  signIn(demoSession)
+})
+
 afterEach(() => {
   cleanup()
   resetFirstVisits()
+  signOut()
 })

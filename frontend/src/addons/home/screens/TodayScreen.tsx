@@ -4,10 +4,11 @@ import { countOf } from '@/core/lib/text'
 import { riseAt } from '@/core/lib/motion'
 import { cn } from '@/core/lib/cn'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
+import { useSignedIn } from '@/core/app/session'
 import { canSee } from '@/core/app/useAccess'
 import { EmptyState } from '@/core/components/ui/EmptyState'
 import { queueFor } from '@/addons/home/fixtures/queue'
-import { currentUser, today } from '@/addons/base/fixtures/org'
+import { today } from '@/addons/base/fixtures/org'
 import { note } from '@/addons/home/fixtures/metrics'
 import { AskLine } from '../components/AskLine'
 import { MetricStrip } from '../components/MetricStrip'
@@ -26,7 +27,8 @@ function greeting(): string {
 
 export function TodayScreen() {
   const { openCommandBar } = useOutletContext<ShellContext>()
-  const firstName = currentUser.name.split(' ')[0]
+  const { user } = useSignedIn()
+  const firstName = user.name.split(' ')[0]
   const fresh = useFirstVisit('home')
 
   const visible = queueFor(canSee)

@@ -84,7 +84,10 @@ without a rebuild. `make logs` tails everything, `make down` stops it, and
 `make clean` also drops the database volume. `make test` and `make lint` run
 both suites inside the containers.
 
-The sign-in screen goes straight through; there is no real authentication yet.
+The sign-in screen still goes straight through: submitting it signs in the demo
+user from the base addon's fixtures. The session store and API client in
+`frontend/src/core` are wired, so connecting the screen to the backend's login
+endpoint is a change to the sign-in screen alone.
 Migrations run automatically on `make up`; `make revision m="add products"`
 generates a new one once there are models to migrate.
 
@@ -95,6 +98,11 @@ cd frontend
 npm ci
 npm run dev
 ```
+
+The dev server proxies `/api` and `/health` to the backend, so the browser only
+ever talks to `localhost:5173` and no CORS setup is needed. The proxy target
+defaults to `http://localhost:8000`; set `API_PROXY_TARGET` to point it elsewhere
+(Compose sets it to the backend container).
 
 ### Where to start
 
