@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { currentUser, organization } from '@/addons/base/fixtures/org'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
@@ -64,11 +65,32 @@ describe('ModuleRail', () => {
     }
   })
 
-  it('leaves the organization and user controls unwired', () => {
+  it('leaves the organization switcher unwired', () => {
     renderWithRouter(<ModuleRail />)
 
-    for (const name of [organization.name, currentUser.name]) {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true')
-    }
+    expect(screen.getByRole('button', { name: organization.name })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+
+  it('opens an account panel from the user avatar', async () => {
+    renderWithRouter(<ModuleRail />)
+
+    await userEvent.click(screen.getByRole('button', { name: currentUser.name }))
+
+    const panel = screen.getByRole('dialog', { name: 'Account' })
+    expect(panel).toHaveTextContent(currentUser.email)
+    expect(panel).toHaveTextContent(currentUser.role)
+    expect(screen.getByRole('button', { name: 'Sign out' })).toHaveFocus()
+  })
+
+  it('closes the account panel with Escape', async () => {
+    renderWithRouter(<ModuleRail />)
+
+    await userEvent.click(screen.getByRole('button', { name: currentUser.name }))
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: 'Account' })).not.toBeInTheDocument()
   })
 })

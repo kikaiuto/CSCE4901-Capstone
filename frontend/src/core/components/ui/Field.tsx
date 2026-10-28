@@ -5,26 +5,53 @@ import { cn } from '@/core/lib/cn'
 export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string
   hint?: ReactNode
+  error?: string
+  labelEnd?: ReactNode
+  trailing?: ReactNode
 }
 
-export function Field({ label, hint, className, ...props }: FieldProps) {
+export function Field({ label, hint, error, labelEnd, trailing, className, ...props }: FieldProps) {
   const id = useId()
+  const hintId = `${id}-hint`
+  const errorId = `${id}-error`
+  const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ')
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm text-ink-muted">
-        {label}
-      </label>
-      <input
-        {...props}
-        id={id}
-        className={cn(
-          'h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-base',
-          'placeholder:text-ink-faint focus:border-accent focus:outline-none',
-          className,
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={id} className="text-sm text-ink-muted">
+          {label}
+        </label>
+        {labelEnd}
+      </div>
+      <div className="relative">
+        <input
+          {...props}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy || undefined}
+          className={cn(
+            'h-10 w-full rounded-control border bg-surface px-3 text-base',
+            'placeholder:text-ink-faint focus:outline-none',
+            error ? 'border-negative focus:border-negative' : 'border-line-strong focus:border-accent',
+            trailing ? 'pr-16' : undefined,
+            className,
+          )}
+        />
+        {trailing && (
+          <div className="absolute inset-y-0 right-2 flex items-center">{trailing}</div>
         )}
-      />
-      {hint && <p className="text-xs text-ink-muted">{hint}</p>}
+      </div>
+      {error && (
+        <p id={errorId} role="alert" className="text-xs text-negative">
+          {error}
+        </p>
+      )}
+      {hint && (
+        <p id={hintId} className="text-xs text-ink-muted">
+          {hint}
+        </p>
+      )}
     </div>
   )
 }

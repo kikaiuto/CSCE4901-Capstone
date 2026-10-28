@@ -84,10 +84,13 @@ without a rebuild. `make logs` tails everything, `make down` stops it, and
 `make clean` also drops the database volume. `make test` and `make lint` run
 both suites inside the containers.
 
-The sign-in screen still goes straight through: submitting it signs in the demo
-user from the base addon's fixtures. The session store and API client in
-`frontend/src/core` are wired, so connecting the screen to the backend's login
-endpoint is a change to the sign-in screen alone.
+The sign-in screen calls `POST /api/base/auth/login`. Login needs an organization
+UUID as well as an email and password, so the screen shows a Workspace select
+listing the two seeded demo organizations until the backend settles how an
+organization is chosen. The seeder creates no users yet, so to sign in locally,
+insert one user into a seeded organization by hand (the integration tests in
+`backend/tests/conftest.py` show the rows involved).
+
 Migrations run automatically on `make up`; `make revision m="add products"`
 generates a new one once there are models to migrate.
 

@@ -1,9 +1,10 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { currentUser } from '@/addons/base/fixtures/org'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
 import { AppShell } from './AppShell'
-import { signOut } from './session'
+import { getSession, signOut } from './session'
 
 describe('AppShell', () => {
   it('shows the module rail', () => {
@@ -23,6 +24,20 @@ describe('AppShell', () => {
     expect(router.state.location.pathname).toBe('/')
     expect(router.state.location.state).toEqual({ from: '/home' })
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+  })
+
+  it('signs out from the rail and lands on sign in', async () => {
+    const { router } = renderWithRouter(<AppShell />, {
+      path: '/home',
+      extraRoutes: [{ path: '/', element: <p>Sign in</p> }],
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: currentUser.name }))
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+
+    expect(getSession()).toBeNull()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.getByText('Sign in')).toBeInTheDocument()
   })
 
   it('offers a skip link as the first stop for the keyboard', () => {

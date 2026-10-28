@@ -10,6 +10,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   size?: ButtonSize
   shortcut?: string
   unwired?: boolean
+  loading?: boolean
   children: ReactNode
 }
 
@@ -33,6 +34,7 @@ export function Button({
   size = 'md',
   shortcut,
   unwired = false,
+  loading = false,
   className,
   children,
   onClick,
@@ -43,6 +45,8 @@ export function Button({
     <button
       {...props}
       type={type}
+      disabled={loading || undefined}
+      aria-busy={loading || undefined}
       aria-disabled={unwired || undefined}
       title={unwired ? 'Not wired up yet' : props.title}
       onClick={unwired ? undefined : onClick}
@@ -50,6 +54,7 @@ export function Button({
         'inline-flex shrink-0 items-center justify-center rounded-control font-medium transition-colors',
         SIZES[size],
         unwired ? UNWIRED : VARIANTS[variant],
+        loading && 'cursor-progress opacity-70',
         className,
       )}
     >
