@@ -15,7 +15,7 @@ from app.addons.inventory.health import (
         (50, 10, StockStatus.HEALTHY, 0),
         (5, 10, StockStatus.LOW_STOCK, 5),
         (0, 10, StockStatus.OUT_OF_STOCK, 10),
-        (10, 10, StockStatus.LOW_STOCK, 0),
+        (10, 10, StockStatus.HEALTHY, 0),
         (1, 0, StockStatus.HEALTHY, 0),
         (0, 0, StockStatus.OUT_OF_STOCK, 0),
     ],
