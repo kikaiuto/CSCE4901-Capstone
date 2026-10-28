@@ -84,10 +84,10 @@ describe('addon dependencies', () => {
 
     expect(reaching).toEqual([
       'app/AppShell.tsx',
-      'app/ModuleRail.tsx',
       'app/overlays.ts',
       'app/registry.ts',
       'app/useAccess.ts',
+      'test/setup.ts',
     ])
   })
 })

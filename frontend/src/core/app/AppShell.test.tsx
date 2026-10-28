@@ -3,12 +3,26 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
 import { AppShell } from './AppShell'
+import { signOut } from './session'
 
 describe('AppShell', () => {
   it('shows the module rail', () => {
     renderWithRouter(<AppShell />)
 
     expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
+  })
+
+  it('sends a visitor without a session back to sign in', () => {
+    signOut()
+
+    const { router } = renderWithRouter(<AppShell />, {
+      path: '/home',
+      extraRoutes: [{ path: '/', element: <p>Sign in</p> }],
+    })
+
+    expect(router.state.location.pathname).toBe('/')
+    expect(router.state.location.state).toEqual({ from: '/home' })
+    expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
 
   it('offers a skip link as the first stop for the keyboard', () => {

@@ -24,7 +24,7 @@ describe('registry', () => {
   })
 
   it('orders the rail by sequence', () => {
-    const sequences = railItems.map((item) => item.sequence)
+    const sequences = railItems().map((item) => item.sequence)
     expect(sequences).toEqual([...sequences].sort((a, b) => a - b))
   })
 
@@ -46,7 +46,7 @@ describe('registry', () => {
   })
 
   it('leaves Admin off the rail body', () => {
-    expect(railItems.some((item) => item.group === 'admin')).toBe(false)
+    expect(railItems().some((item) => item.group === 'admin')).toBe(false)
   })
 
   it('resolves a nested path back to its module', () => {

@@ -99,6 +99,15 @@ Until the API exists, screens render from each addon's `fixtures/`, which are
 shaped as the endpoint response they stand in for. Controls that would write data
 carry the `unwired` prop and render visibly inert.
 
+The signed-in user lives in `core/app/session.ts`, a small external store that
+components subscribe to with `useSession`. Core never reads a user from an
+addon's fixtures; the sign-in screen (base) puts the demo user into the store,
+and the test harness does the same before each test. `core/lib/api.ts` is the
+one place that calls `fetch`: it sends same-origin `/api` requests, which the
+Vite dev server proxies to the backend, and turns the backend's error envelope
+into an `ApiError`. A 401 on an authorised request clears the session, and the
+app shell sends a visitor without a session back to sign in. See ADR 0002.
+
 ## Deployment Topology
 
 The AWS account, who can sign in to it, and where secrets live are covered in
