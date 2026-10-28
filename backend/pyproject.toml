@@ -1,3 +1,4 @@
+
 [project]
 name = "sector7-ai-backend"
 version = "0.1.0"
@@ -45,6 +46,9 @@ known-first-party = ["app"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = [
+    "tests",
+    "app/addons/inventory/tests",
+]
 # The Docker image does not install the project, so `import app` needs backend/ on the path.
 pythonpath = ["."]
