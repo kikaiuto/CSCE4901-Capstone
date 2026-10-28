@@ -69,6 +69,26 @@ describe('request', () => {
     })
   })
 
+  it("carries the backend's 401 envelope through unchanged", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: 'unauthorized', message: 'Sign in to continue', details: {} }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer' },
+        },
+      ),
+    )
+
+    const failure = (await api.get('/api/base/auth/me').catch((e: unknown) => e)) as ApiError
+
+    expect(failure).toBeInstanceOf(ApiError)
+    expect(failure.status).toBe(401)
+    expect(failure.code).toBe('unauthorized')
+    expect(failure.message).toBe('Sign in to continue')
+    expect(failure.details).toEqual({})
+  })
+
   it('reports a FastAPI validation reply as a validation error', async () => {
     fetchMock.mockResolvedValue(
       json({ detail: [{ loc: ['body', 'email'], msg: 'Invalid email address' }] }, 422),
