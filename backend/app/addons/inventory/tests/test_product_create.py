@@ -363,3 +363,139 @@ def test_sqlite_unrelated_constraint():
 
     finally:
         connection.close()
+
+
+@pytest.mark.asyncio
+async def test_product_name_and_sku_are_trimmed(client, tenants):
+    """Remove surrounding whitespace before saving a product."""
+    first, _ = tenants
+    sku = f"TRIM-{uuid.uuid4().hex[:12]}"
+
+    payload = product_payload(
+        first,
+        name="  Premium Fuel Filter  ",
+        sku=f"  {sku}  ",
+    )
+
+    response = await client.post(
+        PRODUCTS_URL,
+        json=payload,
+        headers=first.headers(),
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["name"] == "Premium Fuel Filter"
+    assert response.json()["sku"] == sku
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "field",
+    ["name", "sku"],
+)
+async def test_whitespace_only_product_fields_are_rejected(
+    client,
+    tenants,
+    field,
+):
+    """Reject names and SKUs that contain only whitespace."""
+    first, _ = tenants
+    payload = product_payload(first, **{field: "   "})
+
+    response = await client.post(
+        PRODUCTS_URL,
+        json=payload,
+        headers=first.headers(),
+    )
+
+    assert response.status_code == 422
+
+
+def test_asyncpg_duplicate_sku_constraint():
+    """Recognize an asyncpg-style wrapped duplicate-SKU error."""
+
+    class AsyncpgUniqueViolation(Exception):
+        sqlstate = "23505"
+
+    original_error = AsyncpgUniqueViolation(
+        'duplicate key value violates unique constraint '
+        '"products_organization_id_sku_key"'
+    )
+
+    error = IntegrityError(
+        "INSERT INTO products",
+        {},
+        original_error,
+    )
+
+    assert _is_duplicate_sku_error(error) is True
+
+
+def test_asyncpg_unrelated_unique_constraint():
+    """Do not mistake another unique constraint for a duplicate SKU."""
+
+    class AsyncpgUniqueViolation(Exception):
+        sqlstate = "23505"
+
+    original_error = AsyncpgUniqueViolation(
+        'duplicate key value violates unique constraint '
+        '"products_other_unique_key"'
+    )
+
+    error = IntegrityError(
+        "INSERT INTO products",
+        {},
+        original_error,
+    )
+
+    assert _is_duplicate_sku_error(error) is False
+
+
+def test_asyncpg_duplicate_sku_constraint_in_cause():
+    """Recognize a duplicate-SKU constraint in the wrapped cause."""
+
+    class AsyncpgUniqueViolation(Exception):
+        sqlstate = "23505"
+
+    cause = AsyncpgUniqueViolation(
+        'duplicate key value violates unique constraint '
+        '"products_organization_id_sku_key"'
+    )
+
+    original_error = AsyncpgUniqueViolation(
+        "PostgreSQL unique violation"
+    )
+    original_error.__cause__ = cause
+
+    error = IntegrityError(
+        "INSERT INTO products",
+        {},
+        original_error,
+    )
+
+    assert _is_duplicate_sku_error(error) is True
+
+
+def test_asyncpg_unrelated_constraint_in_cause():
+    """Reject an unrelated constraint reported by the wrapped cause."""
+
+    class AsyncpgUniqueViolation(Exception):
+        sqlstate = "23505"
+
+    cause = AsyncpgUniqueViolation(
+        'duplicate key value violates unique constraint '
+        '"products_other_unique_key"'
+    )
+
+    original_error = AsyncpgUniqueViolation(
+        "PostgreSQL unique violation"
+    )
+    original_error.__cause__ = cause
+
+    error = IntegrityError(
+        "INSERT INTO products",
+        {},
+        original_error,
+    )
+
+    assert _is_duplicate_sku_error(error) is False

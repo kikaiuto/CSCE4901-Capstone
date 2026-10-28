@@ -33,7 +33,7 @@ branch of information architecture diagram D-03.
 | Addon | Track | Screens | Depends on |
 | --- | --- | --- | --- |
 | `base` | PLT | S-01, S-09 | — |
-| `inventory` | INV | S-05 | `base` |
+| `inventory` | INV | S-05 | `base`, `accounting` |
 | `accounting` | ACC | S-07, S-10, S-13 | `base` |
 | `sales` | SLS | S-03, S-04, S-11, S-12 | `base`, `inventory`, `accounting` |
 | `procurement` | INV | S-06 | `base`, `inventory`, `accounting` |
@@ -53,10 +53,18 @@ Load order:
 base -> accounting -> ai -> home -> inventory -> procurement -> sales -> forecasting
 ```
 
-The graph doubles as the sprint plan. Sprint 1 exercises no cross-addon edge,
-since each addon's own data has to be correct in isolation. Sprint 2 lights up
-`sales -> accounting` and `procurement -> accounting`. Sprint 3 assembles the
-`home` and `ai` surfaces from the registry.
+
+The graph also reflects the sprint integration plan. Sprint 1 includes the
+`inventory -> accounting` dependency for tenant-scoped validation of
+inventory asset and sales revenue accounts during product creation.
+The inventory repository reads the Accounting addon's ChartOfAccounts
+ORM model through this explicitly declared dependency. This is a
+D-03 architecture decision and does not implement accounting posting.
+
+Sprint 2 will integrate `sales -> accounting` and
+`procurement -> accounting` posting workflows. Sprint 3 will assemble
+the `home` and `ai` surfaces from the registry.
+
 
 Addons that need data from several tracks do not import them. They read the
 categories in `core/registry.py`, which each addon contributes to: work queue

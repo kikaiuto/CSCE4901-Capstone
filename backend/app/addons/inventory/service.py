@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.addons.inventory import repository
 from app.addons.inventory.models import Product
 from app.addons.inventory.schemas import ProductCreateRequest
+from app.core.contracts.accounting import AccountType
 from app.core.errors import AppError, Conflict, NotFound
 
 
@@ -16,26 +17,65 @@ def _is_duplicate_sku_error(exc: IntegrityError) -> bool:
     """Identify a tenant-scoped product SKU unique-constraint violation."""
 
     original_error = exc.orig
+    expected_constraint = "products_organization_id_sku_key"
 
-    # PostgreSQL: unique-constraint violation (SQLSTATE 23505).
+    # PostgreSQL unique-constraint violation: SQLSTATE 23505.
     sqlstate = getattr(original_error, "sqlstate", None)
+
     if sqlstate is None:
         sqlstate = getattr(original_error, "pgcode", None)
 
-    diagnostic = getattr(original_error, "diag", None)
-    constraint_name = getattr(
-        diagnostic,
-        "constraint_name",
-        None,
-    )
+    if sqlstate == "23505":
+        # Support drivers that expose structured diagnostics.
+        diagnostic = getattr(original_error, "diag", None)
+        constraint_name = getattr(
+            diagnostic,
+            "constraint_name",
+            None,
+        )
 
-    if (
-        sqlstate == "23505"
-        and constraint_name == "products_organization_id_sku_key"
-    ):
-        return True
+        if constraint_name == expected_constraint:
+            return True
 
-    # SQLite: unique-constraint violation during local testing.
+        # SQLAlchemy's asyncpg wrapper may retain the original
+        # PostgreSQL exception as its cause.
+        cause = getattr(original_error, "__cause__", None)
+
+        if cause is not None:
+            cause_diagnostic = getattr(cause, "diag", None)
+
+            cause_constraint = getattr(
+                cause,
+                "constraint_name",
+                None,
+            )
+
+            if cause_constraint is None:
+                cause_constraint = getattr(
+                    cause_diagnostic,
+                    "constraint_name",
+                    None,
+                )
+
+            if cause_constraint == expected_constraint:
+                return True
+
+        # asyncpg/SQLAlchemy can include the constraint name
+        # in the exception message instead of a diag attribute.
+        if expected_constraint in str(original_error):
+            return True
+
+        if (
+            cause is not None
+            and expected_constraint in str(cause)
+        ):
+            return True
+
+        # Do not classify unrelated PostgreSQL constraints
+        # as duplicate product SKUs.
+        return False
+
+    # SQLite unique-constraint violation used in local tests.
     sqlite_error_name = getattr(
         original_error,
         "sqlite_errorname",
@@ -113,7 +153,11 @@ async def create_product(
         account_id=payload.asset_account_id,
     )
 
-    if asset_account is None or asset_account.account_type != "Asset":
+    if (
+        asset_account is None
+        or str(asset_account.account_type).lower()
+        != AccountType.ASSET.value
+    ):
         raise AppError("Invalid inventory asset account")
 
     # Validate the sales revenue account.
@@ -123,7 +167,11 @@ async def create_product(
         account_id=payload.revenue_account_id,
     )
 
-    if revenue_account is None or revenue_account.account_type != "Revenue":
+    if (
+        revenue_account is None
+        or str(revenue_account.account_type).lower()
+        != AccountType.REVENUE.value
+    ):
         raise AppError("Invalid sales revenue account")
 
     # Reject duplicate SKUs within the current organization.
@@ -132,7 +180,9 @@ async def create_product(
         organization_id=organization_id,
         sku=payload.sku,
     ):
-        raise Conflict("A product with this SKU already exists")
+        raise Conflict(
+            "A product with this SKU already exists"
+        )
 
     # Construct the new product.
     product = Product(
@@ -149,8 +199,8 @@ async def create_product(
     )
 
     try:
-        # A savepoint allows database constraint errors to be
-        # handled without invalidating the outer transaction.
+        # Use a savepoint so an insert constraint failure
+        # does not invalidate the outer transaction.
         async with session.begin_nested():
             await repository.create_product(
                 session=session,
@@ -158,7 +208,7 @@ async def create_product(
             )
 
     except IntegrityError as exc:
-        # Return HTTP 409 only for duplicate product SKUs.
+        # Convert only duplicate-SKU violations into HTTP 409.
         if _is_duplicate_sku_error(exc):
             raise Conflict(
                 "A product with this SKU already exists"
