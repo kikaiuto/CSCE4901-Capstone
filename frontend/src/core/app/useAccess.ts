@@ -1,10 +1,12 @@
-import { currentUser } from '@/addons/base/fixtures/org'
 import { accessMatrix, type AccessArea, type AccessLevel } from '@/addons/base/fixtures/people'
+import type { Role } from './roles'
+import { getSession, useSession } from './session'
 
 export type { AccessArea, AccessLevel }
 
-export function accessTo(area: AccessArea): AccessLevel {
-  return accessMatrix[currentUser.role]?.[area] ?? 'none'
+export function accessTo(area: AccessArea, role: Role | undefined = getSession()?.user.role): AccessLevel {
+  if (!role) return 'none'
+  return accessMatrix[role]?.[area] ?? 'none'
 }
 
 export function canSee(area: AccessArea): boolean {
@@ -16,7 +18,8 @@ export function canWrite(area: AccessArea): boolean {
 }
 
 export function useAccess(area: AccessArea) {
-  const level = accessTo(area)
+  const session = useSession()
+  const level = accessTo(area, session?.user.role)
 
   return {
     level,

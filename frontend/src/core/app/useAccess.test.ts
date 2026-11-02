@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { accessMatrix } from '@/addons/base/fixtures/people'
-import { ROLES } from '@/addons/base/fixtures/org'
+import { demoSession, ROLES } from '@/addons/base/fixtures/org'
 import { accessTo, canSee, canWrite } from './useAccess'
 import { navItems, railItems } from './registry'
+import { signIn, signOut } from './session'
 
 describe('access', () => {
   it('reads the level the matrix gives the signed-in role', () => {
@@ -26,7 +27,7 @@ describe('access', () => {
   })
 
   it('shows the Owner every module in the rail', () => {
-    expect(railItems.map((item) => item.name)).toEqual([
+    expect(railItems().map((item) => item.name)).toEqual([
       'home',
       'sales',
       'inventory',
@@ -34,5 +35,21 @@ describe('access', () => {
       'accounting',
     ])
     expect(navItems('admin')).toHaveLength(1)
+  })
+
+  it('follows the session, so a Sales user loses the modules Sales cannot see', () => {
+    signIn({ ...demoSession, user: { ...demoSession.user, role: 'Sales' } })
+
+    expect(canSee('Accounting')).toBe(false)
+    expect(railItems().map((item) => item.name)).toEqual(['home', 'sales', 'inventory'])
+    expect(navItems('admin')).toHaveLength(0)
+  })
+
+  it('grants a visitor who is not signed in nothing but the home destination', () => {
+    signOut()
+
+    expect(accessTo('Sales')).toBe('none')
+    expect(railItems().map((item) => item.name)).toEqual(['home'])
+    expect(navItems('admin')).toHaveLength(0)
   })
 })

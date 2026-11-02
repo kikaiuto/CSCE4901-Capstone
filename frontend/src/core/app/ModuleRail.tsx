@@ -2,8 +2,8 @@ import { NavLink, useLocation } from 'react-router'
 import { cn } from '@/core/lib/cn'
 import { Avatar } from '@/core/components/ui/Avatar'
 import { Icon } from '@/core/components/ui/Icon'
-import { currentUser, organization } from '@/addons/base/fixtures/org'
 import { moduleFor, navItems, railItems, type NavItem } from './registry'
+import { useSignedIn } from './session'
 
 const ITEM_HEIGHT = 56
 
@@ -36,8 +36,9 @@ export interface ModuleRailProps {
 
 export function ModuleRail({ labels = true }: ModuleRailProps) {
   const { pathname } = useLocation()
+  const { user, organization } = useSignedIn()
   const active = moduleFor(pathname)
-  const activeIndex = railItems.findIndex((addon) => addon.name === active?.name)
+  const activeIndex = railItems().findIndex((addon) => addon.name === active?.name)
   const [admin] = navItems('admin')
 
   return (
@@ -86,11 +87,11 @@ export function ModuleRail({ labels = true }: ModuleRailProps) {
         <button
           type="button"
           aria-disabled="true"
-          aria-label={currentUser.name}
+          aria-label={user.name}
           title="Not wired up yet"
           className="rounded-full p-1"
         >
-          <Avatar name={currentUser.name} />
+          <Avatar name={user.name} />
         </button>
       </div>
     </aside>

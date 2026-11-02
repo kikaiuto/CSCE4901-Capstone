@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Outlet } from 'react-router'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { CommandBar } from '@/addons/ai/components/CommandBar'
 import { ModuleBar } from './ModuleBar'
 import { ModuleRail } from './ModuleRail'
+import { useSession } from './session'
 import { PageActionsContext } from './usePageActions'
 import { RecordPagerContext, type RecordPage } from './useRecordPager'
 
 export function AppShell() {
+  const session = useSession()
+  const location = useLocation()
   const [commandBarOpen, setCommandBarOpen] = useState(false)
   const [actions, setActions] = useState<ReactNode>(null)
   const [page, setPage] = useState<RecordPage | null>(null)
@@ -29,6 +32,10 @@ export function AppShell() {
   const context = useMemo(() => ({ openCommandBar: open }), [open])
   const push = useCallback((node: ReactNode) => setActions(node), [])
   const pushPage = useCallback((next: RecordPage | null) => setPage(next), [])
+
+  if (!session) {
+    return <Navigate to="/" replace state={{ from: `${location.pathname}${location.search}` }} />
+  }
 
   return (
     <div className="min-h-screen bg-canvas">
