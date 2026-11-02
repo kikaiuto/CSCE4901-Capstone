@@ -1,37 +1,26 @@
-export interface JournalLine {
-  id: string
-  account: string
-  debit: string
-  credit: string
+export interface AccountResponse {
+  account_id: string
+  account_code: string
+  account_name: string
+  account_type: string
 }
 
-export interface RecentEntry {
-  id: string
-  reference: string
-  date: string
+export interface JournalEntrySummary {
+  entry_id: string
+  entry_date: string
   memo: string
-  amount: string
   source: 'auto' | 'manual'
+  total: string
+  created_at: string
 }
 
-export const accounts = [
-  '1000 · Cash',
-  '1200 · Accounts receivable',
-  '1300 · Inventory',
-  '2000 · Accounts payable',
-  '4000 · Sales revenue',
-  '5000 · Cost of goods sold',
-  '6000 · Operating expenses',
+export const accounts: AccountResponse[] = [
+  { account_id: 'acc-1300', account_code: '1300', account_name: 'Inventory', account_type: 'asset' },
+  { account_id: 'acc-2000', account_code: '2000', account_name: 'Accounts payable', account_type: 'liability' },
+  { account_id: 'acc-6000', account_code: '6000', account_name: 'Operating expenses', account_type: 'expense' },
 ]
 
-export const draftLines: JournalLine[] = [
-  { id: 'jl-1', account: '1300 · Inventory', debit: '2000.00', credit: '0.00' },
-  { id: 'jl-2', account: '2000 · Accounts payable', debit: '0.00', credit: '1900.00' },
-]
-
-export const recentEntries: RecentEntry[] = [
-  { id: 'je-1', reference: 'JE-0188', date: '2026-09-28', memo: 'Receipt PO-0212', amount: '2310.75', source: 'auto' },
-  { id: 'je-2', reference: 'JE-0187', date: '2026-09-27', memo: 'Invoice SO-1039', amount: '1480.00', source: 'auto' },
-  { id: 'je-3', reference: 'JE-0186', date: '2026-09-25', memo: 'Rent, September', amount: '2400.00', source: 'manual' },
-  { id: 'je-4', reference: 'JE-0185', date: '2026-09-22', memo: 'Stock adjustment ADJ-0042', amount: '23.68', source: 'manual' },
+export const recentEntries: JournalEntrySummary[] = [
+  { entry_id: 'je-3', entry_date: '2026-09-25', memo: 'Rent, September', source: 'manual', total: '2400.00', created_at: '2026-09-25T10:00:00Z' },
+  { entry_id: 'je-2', entry_date: '2026-09-27', memo: 'Invoice SO-1039', source: 'auto', total: '1480.00', created_at: '2026-09-27T10:00:00Z' },
 ]
