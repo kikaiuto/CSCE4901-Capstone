@@ -27,7 +27,7 @@ async def test_request_transaction_commits_or_rolls_back(sessions, tenants, fail
 
     @application.post("/write")
     async def write(
-        session: Annotated[AsyncSession, Depends(get_tenant_session)],
+        session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
         writer: Annotated[Writer, Depends(provide(Writer))],
     ):
         assert writer.session is session
@@ -53,3 +53,27 @@ async def test_request_transaction_commits_or_rolls_back(sessions, tenants, fail
             select(ProductCategory).where(ProductCategory.name == "Transaction test")
         )
         assert (category is None) is fail
+
+
+async def test_commit_failure_is_not_reported_as_success(sessions, tenants):
+    """The commit must finish before the response goes out (scope="function")."""
+    first, _ = tenants
+    application = FastAPI()
+
+    @application.post("/write")
+    async def write(
+        session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+    ):
+        # Unflushed, so the NOT NULL violation only surfaces at commit.
+        session.add(ProductCategory(name=None, hierarchy_level=0))
+        return {"ok": True}
+
+    async def override_session():
+        async with sessions() as session:
+            yield session
+
+    application.dependency_overrides[get_session] = override_session
+    transport = ASGITransport(app=application, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/write", headers=first.headers())
+    assert response.status_code == 500
