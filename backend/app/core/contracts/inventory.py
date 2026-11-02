@@ -16,20 +16,13 @@ Features: F4, F5, F6, F9. Requirements: R7, R8, R9, R10, R11, R12.
 import uuid
 from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
-from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 from app.core.contracts.common import DocumentRef
 from app.core.errors import Conflict
 from app.core.tenancy import TenantContext
-
-
-class MovementKind(StrEnum):
-    RECEIPT = "receipt"
-    SALE_SHIP = "sale_ship"
-    ADJUSTMENT = "adjustment"
-    RETURN = "return"
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,16 +60,21 @@ class AdjustmentLine:
 
 @dataclass(frozen=True, slots=True)
 class LedgerRow:
+    """Mirrors inventory_ledger. The sign of change_quantity and the referenced
+    document say what kind of movement a row is."""
+
     ledger_id: uuid.UUID
     product_id: uuid.UUID
     change_quantity: int
     resulting_on_hand: int
     unit_cost: Decimal
-    """Moving average cost the row moved at: after recalculation for a RECEIPT,
-    the cost that left stock for SALE_SHIP and ADJUSTMENT. COGS uses it."""
-    kind: MovementKind
-    document: DocumentRef
-    actor_id: uuid.UUID
+    """Moving average cost the row moved at: after recalculation for a receipt,
+    the cost that left stock for a shipment or adjustment. COGS uses it."""
+    reference_document: str | None
+    """DocumentRef.number of the document behind the row."""
+    user_id: uuid.UUID | None
+    """None for rows written by a system process rather than a person."""
+    created_at: datetime
 
 
 @dataclass(frozen=True, slots=True)

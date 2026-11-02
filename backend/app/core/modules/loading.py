@@ -56,7 +56,7 @@ def mount_routers(app: FastAPI) -> list[str]:
                 tenant,
                 prefix=prefix,
                 tags=[manifest.name],
-                dependencies=[Depends(get_tenant_session)],
+                dependencies=[Depends(get_tenant_session, scope="function")],
             )
         mounted.append(manifest.name)
     return mounted

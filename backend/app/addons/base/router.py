@@ -32,13 +32,13 @@ async def login_route(
 @router.get("/auth/me", response_model=CurrentUserResponse)
 async def me_route(
     ctx: Annotated[TenantContext, Depends(RBACGuard.any_role())],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> CurrentUserResponse:
     return await service.current_user(session, ctx)
 
 
 @router.get("/users", response_model=list[CurrentUserResponse], dependencies=[Depends(VIEW_PEOPLE)])
 async def list_users(
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> list[CurrentUserResponse]:
     return await service.list_people(session)

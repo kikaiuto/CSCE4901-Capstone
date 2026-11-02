@@ -3,7 +3,7 @@
 The entry memo reuses the existing journal_entries.description column.
 
 Revision ID: 0a33fb72767b
-Revises: 9f3c2a1b7d60
+Revises: 4b1d7e9a2c30
 """
 
 import sqlalchemy as sa
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0a33fb72767b"
-down_revision = "9f3c2a1b7d60"
+down_revision = "4b1d7e9a2c30"
 branch_labels = None
 depends_on = None
 

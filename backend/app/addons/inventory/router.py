@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/products", response_model=list[ProductResponse])
 async def list_products_route(
     ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
     limit: int = Query(default=100, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[ProductResponse]:
@@ -34,7 +34,7 @@ async def list_products_route(
 async def get_product_route(
     product_id: UUID,
     ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> ProductResponse:
     product = await service.get_product(
         session=session,
