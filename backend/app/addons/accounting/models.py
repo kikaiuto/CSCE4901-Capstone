@@ -1,9 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -46,6 +47,7 @@ class JournalEntry(TenantScoped, Base):
             "status IN ('DRAFT', 'POSTED')",
             name="ck_journal_entry_status",
         ),
+        CheckConstraint("source IN ('manual', 'auto')", name="ck_journal_entry_source"),
     )
 
     entry_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -56,7 +58,10 @@ class JournalEntry(TenantScoped, Base):
         index=True,
     )
     status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="DRAFT")
+    entry_date: Mapped[date] = mapped_column(Date, nullable=False)
+    source: Mapped[str] = mapped_column(String(10), nullable=False, server_default="manual")
     description: Mapped[str | None] = mapped_column(String(500))
+    """The entry memo shown on S-07."""
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -97,3 +102,4 @@ class JournalEntryLine(TenantScoped, Base):
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     debit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, server_default="0")
     credit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, server_default="0")
+    memo: Mapped[str | None] = mapped_column(String(500))

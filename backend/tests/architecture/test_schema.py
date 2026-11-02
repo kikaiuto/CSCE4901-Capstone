@@ -29,7 +29,7 @@ def test_migration_history_preserves_the_database_branch_root():
     config.set_main_option("script_location", str(root / "alembic"))
     scripts = ScriptDirectory.from_config(config)
     assert scripts.get_bases() == ["eb867def2d3c"]
-    assert scripts.get_heads() == ["4b1d7e9a2c30"]
+    assert scripts.get_heads() == ["0a33fb72767b"]
 
 
 def test_contract_status_enums_match_the_check_constraints():
