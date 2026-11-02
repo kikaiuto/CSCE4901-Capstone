@@ -13,7 +13,7 @@ from sqlalchemy import (
     Uuid,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.core.db import Base
 from app.core.tenancy import TenantRoot, TenantScoped
@@ -70,3 +70,8 @@ class User(TenantScoped, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    @validates("email")
+    def _normalize_email(self, _key: str, value: str) -> str:
+        # Login lowercases the submitted address, so storage must match it.
+        return value.strip().lower()

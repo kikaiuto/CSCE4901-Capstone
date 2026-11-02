@@ -84,3 +84,14 @@ async def test_another_organization_cannot_be_selected_in_a_query(client, tenant
         headers=first.headers(),
     )
     assert response.json()["organization_id"] == str(first.organization_id)
+
+
+async def test_mixed_case_email_is_stored_lowercase_and_can_log_in(client, sessions, tenants):
+    first, _ = tenants
+    async with sessions() as session:
+        user = await session.get(User, first.users[Role.OWNER])
+        user.email = "  Mixed.Case@Example.TEST "
+        await session.commit()
+        assert user.email == "mixed.case@example.test"
+    response = await login(client, first, email="Mixed.Case@Example.TEST")
+    assert response.status_code == 200
