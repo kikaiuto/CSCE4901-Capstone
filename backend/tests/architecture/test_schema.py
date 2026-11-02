@@ -28,4 +28,4 @@ def test_migration_history_preserves_the_database_branch_root():
     config.set_main_option("script_location", str(root / "alembic"))
     scripts = ScriptDirectory.from_config(config)
     assert scripts.get_bases() == ["eb867def2d3c"]
-    assert scripts.get_heads() == ["9f3c2a1b7d60"]
+    assert scripts.get_heads() == ["0a33fb72767b"]
