@@ -89,6 +89,7 @@ class InventoryLedger(TenantScoped, Base):
         ),
         Index("ix_inventory_ledger_product_time", "organization_id", "product_id", "created_at"),
         CheckConstraint("resulting_on_hand >= 0", name="ck_inventory_on_hand_nonnegative"),
+        CheckConstraint("unit_cost >= 0", name="ck_inventory_ledger_nonnegative_cost"),
     )
 
     ledger_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -100,6 +101,9 @@ class InventoryLedger(TenantScoped, Base):
     change_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     resulting_on_hand: Mapped[int] = mapped_column(Integer, nullable=False)
     reference_document: Mapped[str | None] = mapped_column(String(150))
+    unit_cost: Mapped[Decimal] = mapped_column(
+        Numeric(12, 4), nullable=False, default=Decimal("0"), server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

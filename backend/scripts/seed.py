@@ -24,14 +24,14 @@ from app.core.modules.loading import import_models
 NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://sector7.example/demo-seed/v1")
 ROLES = ("Owner", "Admin", "Sales", "Inventory", "Purchasing", "Accounting")
 ACCOUNTS = (
-    ("1000", "Cash", "Asset"),
-    ("1100", "Accounts Receivable", "Asset"),
-    ("1200", "Inventory Asset", "Asset"),
-    ("2000", "Accounts Payable", "Liability"),
-    ("3000", "Owner Equity", "Equity"),
-    ("4000", "Sales Revenue", "Revenue"),
-    ("5000", "Cost of Goods Sold", "Expense"),
-    ("6000", "Operating Expenses", "Expense"),
+    ("1000", "Cash", "asset"),
+    ("1100", "Accounts Receivable", "asset"),
+    ("1200", "Inventory Asset", "asset"),
+    ("2000", "Accounts Payable", "liability"),
+    ("3000", "Owner Equity", "equity"),
+    ("4000", "Sales Revenue", "revenue"),
+    ("5000", "Cost of Goods Sold", "expense"),
+    ("6000", "Operating Expenses", "expense"),
 )
 PRODUCTS = (
     ("LAP-01", "Business Laptop", "Laptops", "550.0000", "899.0000"),

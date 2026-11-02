@@ -19,7 +19,7 @@ Features: F6, F7. Requirements: R13, R14, R15.
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
@@ -29,10 +29,12 @@ from app.core.tenancy import TenantContext
 
 
 class OrderStatus(StrEnum):
-    DRAFT = "draft"
-    CONFIRMED = "confirmed"
-    FULFILLED = "fulfilled"
-    CANCELLED = "cancelled"
+    """Values are the spellings ck_sales_order_status allows."""
+
+    DRAFT = "DRAFT"
+    CONFIRMED = "CONFIRMED"
+    FULFILLED = "FULFILLED"
+    CANCELLED = "CANCELLED"
 
 
 ORDER_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
@@ -55,7 +57,6 @@ class OrderLineDraft:
 @dataclass(frozen=True, slots=True)
 class OrderDraft:
     customer_id: uuid.UUID
-    order_date: date
     lines: Sequence[OrderLineDraft]
 
 
@@ -64,23 +65,19 @@ class OrderLine:
     line_id: uuid.UUID
     product_id: uuid.UUID
     quantity: int
-    unit_price: Decimal
     line_total: Decimal
 
 
 @dataclass(frozen=True, slots=True)
 class Order:
+    """Mirrors sales_orders. Adding a number, owner, or tax split needs a migration."""
+
     order_id: uuid.UUID
-    number: str
-    """Human number shown on S-03, e.g. SO-1044."""
     customer_id: uuid.UUID
-    owner_id: uuid.UUID
-    order_date: date
     status: OrderStatus
+    created_at: datetime
     lines: Sequence[OrderLine]
-    subtotal: Decimal
-    tax: Decimal
-    total: Decimal
+    order_total: Decimal
 
 
 class InvalidTransition(Conflict):
@@ -115,7 +112,7 @@ class SalesContract(SalesReader, Protocol):
     """Writers. Each one flushes and leaves the commit to the request."""
 
     async def create_order(self, ctx: TenantContext, draft: OrderDraft) -> Order:
-        """Creates a DRAFT order owned by ctx.user_id, totals computed here."""
+        """Creates a DRAFT order, line and order totals computed here."""
         ...
 
     async def transition_order_status(
