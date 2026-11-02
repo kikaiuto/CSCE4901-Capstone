@@ -3,7 +3,6 @@ import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { renderWithRouter, type RenderWithRouterOptions } from '@/core/test/renderWithRouter'
 import { AccountsScreen } from '@/addons/accounting/screens/AccountsScreen'
-import { JournalScreen } from '@/addons/accounting/screens/JournalScreen'
 import { ProfitLossScreen } from '@/addons/accounting/screens/ProfitLossScreen'
 import { PeopleScreen } from '@/addons/base/screens/PeopleScreen'
 import { SignInScreen } from '@/addons/base/screens/SignInScreen'
@@ -51,7 +50,6 @@ const SCREENS: { name: string; element: ReactElement; options?: RenderWithRouter
     element: <ReceiveScreen />,
     options: { path: '/procurement/orders/PO-0214', routePath: '/procurement/orders/:id' },
   },
-  { name: 'JournalScreen', element: <JournalScreen /> },
   { name: 'AccountsScreen', element: <AccountsScreen /> },
   { name: 'ProfitLossScreen', element: <ProfitLossScreen /> },
   { name: 'PeopleScreen', element: <PeopleScreen /> },
