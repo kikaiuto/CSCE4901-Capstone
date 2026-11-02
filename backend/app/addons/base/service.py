@@ -74,7 +74,9 @@ class IdentityService:
     async def get_users(
         self, ctx: TenantContext, user_ids: Collection[UUID]
     ) -> Mapping[UUID, UserSummary]:
-        rows = await repository.list_users(self.session, user_ids=user_ids)
+        rows = await repository.list_users(
+            self.session, organization_id=ctx.organization_id, user_ids=user_ids
+        )
         return {
             user.user_id: UserSummary(
                 user.user_id, user.full_name, user.email, _role(role_name), user.is_active
@@ -83,7 +85,7 @@ class IdentityService:
         }
 
 
-async def list_people(session: AsyncSession) -> list[CurrentUserResponse]:
+async def list_people(session: AsyncSession, ctx: TenantContext) -> list[CurrentUserResponse]:
     return [
         CurrentUserResponse(
             user_id=user.user_id,
@@ -91,5 +93,7 @@ async def list_people(session: AsyncSession) -> list[CurrentUserResponse]:
             role=_role(role_name),
             email=user.email,
         )
-        for user, role_name in await repository.list_users(session)
+        for user, role_name in await repository.list_users(
+            session, organization_id=ctx.organization_id
+        )
     ]

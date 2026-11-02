@@ -17,9 +17,14 @@ def _users_with_roles() -> Select:
 
 
 async def list_users(
-    session: AsyncSession, *, user_ids: Collection[UUID] | None = None
+    session: AsyncSession,
+    *,
+    organization_id: UUID,
+    user_ids: Collection[UUID] | None = None,
 ) -> list[tuple[User, str]]:
-    statement = _users_with_roles().order_by(User.email)
+    statement = (
+        _users_with_roles().where(User.organization_id == organization_id).order_by(User.email)
+    )
     if user_ids is not None:
         statement = statement.where(User.user_id.in_(user_ids))
     return [(row[0], row[1]) for row in (await session.execute(statement)).all()]

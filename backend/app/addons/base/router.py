@@ -37,8 +37,9 @@ async def me_route(
     return await service.current_user(session, ctx)
 
 
-@router.get("/users", response_model=list[CurrentUserResponse], dependencies=[Depends(VIEW_PEOPLE)])
+@router.get("/users", response_model=list[CurrentUserResponse])
 async def list_users(
+    ctx: Annotated[TenantContext, Depends(VIEW_PEOPLE)],
     session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> list[CurrentUserResponse]:
-    return await service.list_people(session)
+    return await service.list_people(session, ctx)
