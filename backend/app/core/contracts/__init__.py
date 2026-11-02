@@ -51,7 +51,9 @@ def bind[T](contract: type[T], factory: Callable[[AsyncSession], T]) -> None:
 
 
 def provide[T](contract: type[T]) -> Callable[..., T]:
-    def dependency(session: Annotated[AsyncSession, Depends(get_tenant_session)]) -> T:
+    def dependency(
+        session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+    ) -> T:
         try:
             factory = _factories[contract]
         except KeyError:

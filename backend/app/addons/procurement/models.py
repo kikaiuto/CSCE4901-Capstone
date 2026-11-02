@@ -70,6 +70,10 @@ class PurchaseOrderLine(TenantScoped, Base):
         ),
         CheckConstraint("quantity > 0", name="ck_purchase_order_line_positive_quantity"),
         CheckConstraint("unit_cost >= 0", name="ck_purchase_order_line_nonnegative_cost"),
+        CheckConstraint(
+            "quantity_received >= 0 AND quantity_received <= quantity",
+            name="ck_purchase_order_line_received_range",
+        ),
     )
 
     line_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -80,3 +84,6 @@ class PurchaseOrderLine(TenantScoped, Base):
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_cost: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    quantity_received: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
