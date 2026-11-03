@@ -3,7 +3,7 @@
 from collections.abc import Collection
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.base.models import Role, User
@@ -30,9 +30,18 @@ async def list_users(
 async def find_user_for_login(
     session: AsyncSession, *, organization_id: UUID, email: str
 ) -> tuple[User, str] | None:
-    stmt = _users_with_roles().where(User.organization_id == organization_id, User.email == email)
-    row = (await session.execute(stmt)).one_or_none()
-    return (row[0], row[1]) if row else None
+    # Older records predate email normalization in the User model.
+    stmt = (
+        _users_with_roles()
+        .where(User.organization_id == organization_id, func.lower(User.email) == email)
+        .limit(2)
+    )
+    rows = (await session.execute(stmt)).all()
+    if len(rows) != 1:
+        # Case-only duplicates need administrative cleanup, not an arbitrary match.
+        return None
+    user, role_name = rows[0]
+    return user, role_name
 
 
 async def find_user_by_id(

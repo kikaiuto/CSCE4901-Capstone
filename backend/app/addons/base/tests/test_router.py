@@ -5,6 +5,7 @@ Features: F1, F2. Requirements: R1, R2, R3, R4."""
 import uuid
 
 import pytest
+from sqlalchemy import update
 
 from app.addons.base import service
 from app.addons.base.models import Role as UserRole
@@ -127,6 +128,63 @@ async def test_mixed_case_email_is_stored_lowercase_and_can_log_in(client, sessi
         assert user.email == "mixed.case@example.test"
     response = await login(client, first, email="Mixed.Case@Example.TEST")
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize("email", ["owner@acme.test", "OWNER@ACME.TEST", " Owner@Acme.Test "])
+async def test_legacy_mixed_case_email_can_log_in(client, sessions, tenants, email):
+    first, _ = tenants
+    async with sessions() as session:
+        # Bulk updates bypass the new ORM validator, matching pre-existing rows.
+        await session.execute(
+            update(User)
+            .where(
+                User.organization_id == first.organization_id,
+                User.user_id == first.users[Role.OWNER],
+            )
+            .values(email="Owner@Acme.Test")
+        )
+        await session.commit()
+    assert (await login(client, first, email=email)).status_code == 200
+
+
+async def test_email_lookup_stays_inside_the_selected_organization(client, sessions, tenants):
+    first, second = tenants
+    async with sessions() as session:
+        await session.execute(
+            update(User)
+            .where(
+                User.organization_id == second.organization_id,
+                User.user_id == second.users[Role.OWNER],
+            )
+            .values(email=first.owner_email.upper())
+        )
+        await session.commit()
+    for tenant in (first, second):
+        response = await login(client, tenant, email=first.owner_email)
+        assert response.status_code == 200
+        me = await client.get(
+            "/api/base/auth/me",
+            headers={"Authorization": f"Bearer {response.json()['access_token']}"},
+        )
+        assert me.json()["organization_id"] == str(tenant.organization_id)
+
+
+async def test_legacy_case_only_duplicates_return_invalid_credentials(client, sessions, tenants):
+    first, _ = tenants
+    async with sessions() as session:
+        await session.execute(
+            update(User)
+            .where(
+                User.organization_id == first.organization_id,
+                User.user_id == first.users[Role.SALES],
+            )
+            .values(email=first.owner_email.upper())
+        )
+        await session.commit()
+    duplicate = await login(client, first)
+    missing = await login(client, first, email="absent@example.test")
+    assert duplicate.status_code == 401
+    assert duplicate.json() == missing.json()
 
 
 async def test_user_list_carries_what_the_people_screen_shows(client, sessions, tenants):

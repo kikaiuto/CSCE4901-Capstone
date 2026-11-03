@@ -24,7 +24,7 @@ router = APIRouter()
 @router.get("/accounts", response_model=list[AccountResponse])
 async def list_accounts_route(
     ctx: Annotated[TenantContext, Depends(READ_ACCOUNTING)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> list[AccountResponse]:
     accounts = await service.list_accounts(session, ctx.organization_id)
     return [
@@ -41,7 +41,7 @@ async def list_accounts_route(
 @router.get("/journal-entries", response_model=list[JournalEntrySummary])
 async def list_entries_route(
     ctx: Annotated[TenantContext, Depends(READ_ACCOUNTING)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
     limit: int = Query(default=20, ge=1, le=100),
 ) -> list[JournalEntrySummary]:
     rows = await service.list_entries(session, ctx.organization_id, limit)
@@ -62,7 +62,7 @@ async def list_entries_route(
 async def post_entry_route(
     body: JournalEntryIn,
     ctx: Annotated[TenantContext, Depends(POST_JOURNAL_ENTRY)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> PostedEntryResponse:
     draft = JournalEntryDraft(
         entry_date=body.entry_date,
