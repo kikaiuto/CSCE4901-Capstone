@@ -5,7 +5,6 @@ from decimal import Decimal
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     Integer,
     Numeric,
@@ -25,9 +24,6 @@ class Customer(TenantScoped, Base):
     __table_args__ = (UniqueConstraint("organization_id", "customer_id"),)
 
     customer_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     contact_details: Mapped[str | None] = mapped_column(String(500))
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     credit_status: Mapped[str] = mapped_column(String(50), server_default="GOOD", nullable=False)
@@ -49,9 +45,6 @@ class SalesOrder(TenantScoped, Base):
     )
 
     order_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     customer_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     status: Mapped[str] = mapped_column(String(20), server_default="DRAFT", nullable=False)
     order_total: Mapped[Decimal] = mapped_column(
@@ -77,9 +70,6 @@ class SalesOrderLine(TenantScoped, Base):
     )
 
     line_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     order_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)

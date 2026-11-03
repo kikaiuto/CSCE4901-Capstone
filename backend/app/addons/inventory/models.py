@@ -30,9 +30,6 @@ class ProductCategory(TenantScoped, Base):
     )
 
     category_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     hierarchy_level: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
@@ -62,9 +59,6 @@ class Product(TenantScoped, Base):
     )
 
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     category_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     asset_account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     revenue_account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
@@ -94,7 +88,7 @@ class InventoryLedger(TenantScoped, Base):
 
     ledger_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
+        Uuid, ForeignKey("organizations.organization_id"), nullable=False
     )
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)

@@ -52,7 +52,7 @@ class TenantScoped:
     """
 
     organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False
+        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
     )
 
 

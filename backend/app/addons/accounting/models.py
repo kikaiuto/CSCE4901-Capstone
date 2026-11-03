@@ -6,7 +6,6 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     Numeric,
     String,
@@ -28,12 +27,6 @@ class ChartOfAccounts(TenantScoped, Base):
     )
 
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     account_code: Mapped[str] = mapped_column(String(30), nullable=False)
     account_name: Mapped[str] = mapped_column(String(150), nullable=False)
     account_type: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -51,12 +44,6 @@ class JournalEntry(TenantScoped, Base):
     )
 
     entry_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="DRAFT")
     entry_date: Mapped[date] = mapped_column(Date, nullable=False)
     source: Mapped[str] = mapped_column(String(10), nullable=False, server_default="manual")
@@ -92,12 +79,6 @@ class JournalEntryLine(TenantScoped, Base):
     )
 
     line_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     entry_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     debit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, server_default="0")

@@ -5,7 +5,6 @@ from decimal import Decimal
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     Integer,
     Numeric,
@@ -25,9 +24,6 @@ class Supplier(TenantScoped, Base):
     __table_args__ = (UniqueConstraint("organization_id", "supplier_id"),)
 
     supplier_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     supplier_terms: Mapped[str | None] = mapped_column(String(500))
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     lead_times: Mapped[int | None] = mapped_column(Integer)
@@ -48,9 +44,6 @@ class PurchaseOrder(TenantScoped, Base):
     )
 
     po_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     supplier_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     status: Mapped[str] = mapped_column(String(30), server_default="DRAFT", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -77,9 +70,6 @@ class PurchaseOrderLine(TenantScoped, Base):
     )
 
     line_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     po_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
