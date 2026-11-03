@@ -1,4 +1,7 @@
-import uuid
+"""The ORM hooks in core.tenancy, exercised without any addon route.
+
+Route-level isolation tests live with the addon that owns the route.
+"""
 
 import pytest
 from sqlalchemy import delete, func, insert, select, update
@@ -8,55 +11,7 @@ from app.addons.base.models import Organization, User
 from app.addons.inventory.models import Product, ProductCategory
 from app.core.errors import CrossTenantWrite
 from app.core.roles import Role
-from app.core.security import TokenClaims, issue_access_token
 from app.core.tenancy import bind_session
-
-
-async def test_product_endpoints_hide_other_tenants(client, tenants):
-    first, second = tenants
-    response = await client.get(
-        "/api/inventory/products",
-        headers=first.headers(),
-        params={"organization_id": str(second.organization_id)},
-    )
-    assert response.status_code == 200
-    assert [row["product_id"] for row in response.json()] == [str(first.product_id)]
-    own = await client.get(f"/api/inventory/products/{first.product_id}", headers=first.headers())
-    assert own.status_code == 200
-    hidden = await client.get(
-        f"/api/inventory/products/{second.product_id}", headers=first.headers()
-    )
-    absent = await client.get(f"/api/inventory/products/{uuid.uuid4()}", headers=first.headers())
-    assert hidden.status_code == absent.status_code == 404
-    assert hidden.json() == absent.json()
-
-
-async def test_user_list_is_tenant_scoped_and_restricted(client, tenants):
-    first, second = tenants
-    response = await client.get("/api/base/users", headers=first.headers())
-    assert response.status_code == 200
-    assert {row["user_id"] for row in response.json()} == {str(uid) for uid in first.users.values()}
-    assert not {str(uid) for uid in second.users.values()} & {
-        row["user_id"] for row in response.json()
-    }
-    forbidden = await client.get("/api/base/users", headers=first.headers(Role.SALES))
-    assert forbidden.status_code == 403
-
-
-async def test_product_permission_matches_the_access_matrix(client, tenants):
-    first, _ = tenants
-    for role in Role:
-        response = await client.get("/api/inventory/products", headers=first.headers(role))
-        assert response.status_code == (403 if role is Role.ACCOUNTING else 200)
-
-
-async def test_signed_token_cannot_mix_a_user_and_another_organization(client, tenants):
-    first, second = tenants
-    token = issue_access_token(
-        TokenClaims(first.users[Role.OWNER], second.organization_id, Role.OWNER)
-    )
-    response = await client.get("/api/base/users", headers={"Authorization": f"Bearer {token}"})
-    assert response.status_code == 401
 
 
 async def test_orm_reads_are_scoped_without_repository_filters(sessions, tenants):
