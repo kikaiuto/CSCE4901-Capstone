@@ -43,8 +43,12 @@ def _decoy_hash() -> str:
     return hash_password("sector7-decoy-password-never-assigned")
 
 
-async def _verify(password: str, stored_hash: str) -> bool:
-    return await asyncio.to_thread(verify_password, password, stored_hash)
+def _verify_in_thread(password: str, stored_hash: str | None) -> bool:
+    return verify_password(password, stored_hash or _decoy_hash())
+
+
+async def _verify(password: str, stored_hash: str | None) -> bool:
+    return await asyncio.to_thread(_verify_in_thread, password, stored_hash)
 
 
 def _response(user: User, role: Role) -> CurrentUserResponse:
@@ -77,7 +81,7 @@ async def login(payload: LoginRequest, session: AsyncSession) -> TokenResponse:
     )
     user, role_name = match if match is not None else (None, "")
     usable = user is not None and user.is_active
-    stored_hash = user.password_hash if usable else _decoy_hash()
+    stored_hash = user.password_hash if usable else None
     verified = await _verify(payload.password.get_secret_value(), stored_hash)
     if not usable or not verified:
         raise Unauthorized(INVALID_CREDENTIALS)

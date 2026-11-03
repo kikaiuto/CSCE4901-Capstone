@@ -20,7 +20,7 @@ async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
         Supplier,
         [
             {
-                "supplier_id": tenant.uuid("supplier", str(number)),
+                "supplier_id": tenant.id_for("supplier", str(number)),
                 "organization_id": tenant.organization_id,
                 "name": f"Demo Supplier {number}",
                 "supplier_terms": "Net 30",

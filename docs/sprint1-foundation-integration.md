@@ -95,19 +95,24 @@ while a login or token check for that user's own account still fails closed.
 ## Demo seed
 
 Each addon owns its demo rows in `data/demo.py`, the module its manifest names
-under `seeds`. That module exposes `seed(session, tenant)` and adds rows through
-the ORM with `core/seeding.py`'s `add_missing`, which checks each deterministic
-primary key before inserting, so a second run adds nothing. `scripts/seed.py`
-is only the runner: it refuses any database that is not the local `sector7`
-PostgreSQL, reading `ENVIRONMENT` through `get_settings()`, then runs the
-seeders in addon load order inside one transaction.
+under `seeds`; an addon with nothing to seed yet declares an empty list, and a
+declared module without a `seed()` fails loading rather than being skipped.
+That module exposes `seed(session, tenant)` and adds rows through the ORM with
+`core/seeding.py`'s `add_missing`, which skips a row whose primary key or any
+unique key already exists in that organization, so a second run adds nothing
+and a row created another way under a different id is left alone.
+`scripts/seed.py` is only the runner: it refuses any database that is not the
+local `sector7` PostgreSQL, reading `ENVIRONMENT` through `get_settings()`,
+then hands the seeders to `seed_demo`, which runs them in addon load order
+inside one transaction.
 
 ```powershell
 uv run python -m scripts.seed
 ```
 
 Ids are uuid5 values derived from the tenant name, so the two demo
-organizations keep the ids the sign-in screen's workspace picker lists. The
+organizations keep stable ids that the sign-in wiring branch's workspace
+picker can list. The
 accounting seed runs before inventory in load order, which is what lets a
 product's asset and revenue accounts point at the `1200` and `4000` rows by the
 same derived id. Users are still not seeded; they wait for the
@@ -134,9 +139,11 @@ against a decoy Argon2 hash, so response timing does not reveal which emails
 exist. Verification runs in a worker thread rather than on the event loop.
 
 The current login contract still includes `organization_id` because emails are
-unique per organization in the existing database. The sign-in screen resolves
-this with a workspace picker that lists the seeded demo organizations by id;
-email-only sign-in would need a deliberate change to email uniqueness.
+unique per organization in the existing database. On this branch the sign-in
+screen still signs in with a fixture; the separate sign-in wiring branch
+resolves the organization with a workspace picker that lists the seeded demo
+organizations by id. Email-only sign-in would need a deliberate change to
+email uniqueness.
 
 ## Shared contracts and transactions
 

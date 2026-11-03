@@ -30,7 +30,7 @@ async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
         ChartOfAccounts,
         [
             {
-                "account_id": tenant.uuid("account", code),
+                "account_id": tenant.id_for("account", code),
                 "organization_id": tenant.organization_id,
                 "account_code": code,
                 "account_name": name,

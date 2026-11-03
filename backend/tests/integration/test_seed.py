@@ -10,42 +10,26 @@ from app.addons.inventory.models import Product
 from app.addons.procurement.models import Supplier
 from app.addons.sales.models import Customer
 from app.core.modules.loading import import_seeds
-from app.core.seeding import demo_tenants
+from app.core.seeding import demo_tenants, seed_demo
 
 NORTHSTAR = uuid.UUID("6fd03a14-80fd-5476-a84e-ae0c2c0c6e4d")
 CEDAR = uuid.UUID("d3d1a2ca-f45e-5da5-8ef8-3486edc3fe4a")
+EXPECTED = {"base": 14, "accounting": 16, "inventory": 28, "procurement": 6, "sales": 20}
 
 
-async def run_seed(session) -> dict[str, int]:
-    added: dict[str, int] = {}
-    for tenant in demo_tenants():
-        for addon, seed in import_seeds():
-            added[addon] = added.get(addon, 0) + await seed(session, tenant)
-    await session.commit()
-    return added
-
-
-async def test_seed_ids_match_the_frontend_demo_workspaces():
+async def test_demo_tenant_ids_are_pinned():
     assert [tenant.organization_id for tenant in demo_tenants()] == [NORTHSTAR, CEDAR]
 
 
 async def test_every_seeding_addon_contributes_through_its_manifest():
-    assert [addon for addon, _ in import_seeds()] == [
-        "base",
-        "accounting",
-        "inventory",
-        "procurement",
-        "sales",
-    ]
+    assert [addon for addon, _ in import_seeds()] == list(EXPECTED)
 
 
 async def test_seed_fills_both_tenants_once(sessions):
     async with sessions() as session:
-        first = await run_seed(session)
+        assert await seed_demo(session, import_seeds()) == EXPECTED
     async with sessions() as session:
-        second = await run_seed(session)
-    assert first == {"base": 14, "accounting": 16, "inventory": 28, "procurement": 6, "sales": 20}
-    assert second == {addon: 0 for addon in first}
+        assert await seed_demo(session, import_seeds()) == {addon: 0 for addon in EXPECTED}
     async with sessions() as session:
         for model, expected in (
             (Organization, 2),
@@ -61,3 +45,18 @@ async def test_seed_fills_both_tenants_once(sessions):
         )
         asset = await session.get(ChartOfAccounts, product.asset_account_id)
         assert (asset.organization_id, asset.account_code) == (NORTHSTAR, "1200")
+
+
+async def test_seed_keeps_rows_that_exist_under_another_id(sessions):
+    async with sessions() as session:
+        session.add(Organization(organization_id=NORTHSTAR, name="Northstar Electronics Demo"))
+        session.add(Role(organization_id=NORTHSTAR, name="Owner"))
+        await session.commit()
+    async with sessions() as session:
+        added = await seed_demo(session, import_seeds())
+    assert added["base"] == EXPECTED["base"] - 2
+    async with sessions() as session:
+        owners = await session.scalars(
+            select(Role).where(Role.organization_id == NORTHSTAR, Role.name == "Owner")
+        )
+        assert len(list(owners)) == 1

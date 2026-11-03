@@ -41,7 +41,7 @@ async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
         ProductCategory,
         [
             {
-                "category_id": tenant.uuid("category", category),
+                "category_id": tenant.id_for("category", category),
                 "organization_id": tenant.organization_id,
                 "name": category,
                 "hierarchy_level": 0,
@@ -54,11 +54,11 @@ async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
         Product,
         [
             {
-                "product_id": tenant.uuid("product", sku),
+                "product_id": tenant.id_for("product", sku),
                 "organization_id": tenant.organization_id,
-                "category_id": tenant.uuid("category", category),
-                "asset_account_id": tenant.uuid("account", INVENTORY_ASSET_ACCOUNT),
-                "revenue_account_id": tenant.uuid("account", SALES_REVENUE_ACCOUNT),
+                "category_id": tenant.id_for("category", category),
+                "asset_account_id": tenant.id_for("account", INVENTORY_ASSET_ACCOUNT),
+                "revenue_account_id": tenant.id_for("account", SALES_REVENUE_ACCOUNT),
                 "name": name,
                 "sku": sku,
                 "unit_cost": Decimal(cost),

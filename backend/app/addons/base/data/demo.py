@@ -11,9 +11,10 @@ way as real accounts.
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.base.models import Organization, Role
+from app.core.roles import Role as AppRole
 from app.core.seeding import DemoTenant, add_missing
 
-ROLES = ("Owner", "Admin", "Sales", "Inventory", "Purchasing", "Accounting")
+ROLES = tuple(role.value.title() for role in AppRole)
 
 
 async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
@@ -27,7 +28,7 @@ async def seed(session: AsyncSession, tenant: DemoTenant) -> int:
         Role,
         [
             {
-                "role_id": tenant.uuid("role", role),
+                "role_id": tenant.id_for("role", role),
                 "organization_id": tenant.organization_id,
                 "name": role,
             }
