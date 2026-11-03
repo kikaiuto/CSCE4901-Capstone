@@ -41,12 +41,14 @@ export function visibleToCurrentRole(item: NavItem): boolean {
   return item.area === undefined || canSee(item.area)
 }
 
-export const railItems: NavItem[] = navEntries
-  .filter((item) => item.group !== 'admin')
-  .filter(visibleToCurrentRole)
+export function railItems(): NavItem[] {
+  return navEntries.filter((item) => item.group !== 'admin').filter(visibleToCurrentRole)
+}
 
 export function moduleFor(pathname: string): NavItem | undefined {
   return navEntries.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
 }
 
-export const operationLabels: string[] = navItems('operations').map((item) => item.label)
+export const operationLabels: string[] = navEntries
+  .filter((item) => item.group === 'operations')
+  .map((item) => item.label)

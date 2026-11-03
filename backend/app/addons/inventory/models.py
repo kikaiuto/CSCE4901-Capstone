@@ -30,9 +30,6 @@ class ProductCategory(TenantScoped, Base):
     )
 
     category_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     hierarchy_level: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
@@ -62,9 +59,6 @@ class Product(TenantScoped, Base):
     )
 
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     category_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     asset_account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     revenue_account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
@@ -89,17 +83,21 @@ class InventoryLedger(TenantScoped, Base):
         ),
         Index("ix_inventory_ledger_product_time", "organization_id", "product_id", "created_at"),
         CheckConstraint("resulting_on_hand >= 0", name="ck_inventory_on_hand_nonnegative"),
+        CheckConstraint("unit_cost >= 0", name="ck_inventory_ledger_nonnegative_cost"),
     )
 
     ledger_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
+        Uuid, ForeignKey("organizations.organization_id"), nullable=False
     )
     product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     change_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     resulting_on_hand: Mapped[int] = mapped_column(Integer, nullable=False)
     reference_document: Mapped[str | None] = mapped_column(String(150))
+    unit_cost: Mapped[Decimal] = mapped_column(
+        Numeric(12, 4), nullable=False, default=Decimal("0"), server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

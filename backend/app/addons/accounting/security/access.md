@@ -7,4 +7,6 @@ Requirements: R18, R19, R20, R21, R22, R23, R31.
 
 | Action | Owner | Admin | Sales | Inventory | Purchasing | Accounting |
 | --- | --- | --- | --- | --- | --- | --- |
-| _TODO: one row per endpoint_ |  |  |  |  |  |  |
+| List chart of accounts (`READ_ACCOUNTING`) | Yes | Yes | No | No | No | Yes |
+| List recent journal entries (`READ_ACCOUNTING`) | Yes | Yes | No | No | No | Yes |
+| Post a manual journal entry (`POST_JOURNAL_ENTRY`) | Yes | Yes | No | No | No | Yes |

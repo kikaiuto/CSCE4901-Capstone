@@ -98,6 +98,21 @@ def test_addons_write_sql_only_through_the_orm():
     assert not violations, "\n".join(violations)
 
 
+def test_scanner_sees_every_import_form(tmp_path):
+    probe = tmp_path / "probe.py"
+    probe.write_text(
+        "import app.addons.sales\n"
+        "import app.addons.sales.service as sales_service\n"
+        "from app.addons.sales import service\n"
+        "from app.addons.sales.service import SalesService\n",
+        encoding="utf-8",
+    )
+    by_line = {}
+    for line, module in imported_modules(probe):
+        by_line.setdefault(line, set()).add(addon_of(module))
+    assert by_line == {1: {"sales"}, 2: {"sales"}, 3: {"sales"}, 4: {"sales"}}
+
+
 def test_relative_imports_are_resolved():
     fake = ADDONS_DIR / "ai" / "service.py"
     assert package_of(fake) == "app.addons.ai"

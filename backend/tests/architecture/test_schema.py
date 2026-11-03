@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from alembic.config import Config
@@ -28,4 +29,16 @@ def test_migration_history_preserves_the_database_branch_root():
     config.set_main_option("script_location", str(root / "alembic"))
     scripts = ScriptDirectory.from_config(config)
     assert scripts.get_bases() == ["eb867def2d3c"]
-    assert scripts.get_heads() == ["9f3c2a1b7d60"]
+    assert scripts.get_heads() == ["7c5e1a9b3d42"]
+
+
+def test_contract_status_enums_match_the_check_constraints():
+    from app.addons.procurement.models import PurchaseOrder
+    from app.addons.sales.models import SalesOrder
+    from app.core.contracts.procurement import PurchaseOrderStatus
+    from app.core.contracts.sales import OrderStatus
+
+    for model, enum in ((SalesOrder, OrderStatus), (PurchaseOrder, PurchaseOrderStatus)):
+        (check,) = [c for c in model.__table__.constraints if (c.name or "").endswith("_status")]
+        allowed = set(re.findall(r"'([A-Z_]+)'", str(check.sqltext)))
+        assert {status.value for status in enum} == allowed, model.__name__

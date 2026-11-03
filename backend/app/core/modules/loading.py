@@ -11,7 +11,8 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, FastAPI
 
 from app.core.modules.graph import load_order
-from app.core.modules.manifest import Manifest, read_manifest
+from app.core.modules.manifest import Manifest, ManifestError, read_manifest
+from app.core.seeding import Seeder
 from app.core.tenancy import get_tenant_session
 
 ADDONS_DIR = Path(__file__).resolve().parent.parent.parent / "addons"
@@ -41,6 +42,21 @@ def import_models() -> list[str]:
     return imported
 
 
+def import_seeds() -> list[tuple[str, Seeder]]:
+    """Each addon's seed callables, in load order, from the manifest's seeds.
+    A declared seeds module must define seed(); an addon with nothing to seed
+    declares an empty list instead."""
+    seeders: list[tuple[str, Seeder]] = []
+    for manifest in manifests_in_load_order():
+        for module_name in manifest.seeds:
+            qualified = f"app.addons.{manifest.name}.{module_name}"
+            seed = getattr(importlib.import_module(qualified), "seed", None)
+            if not callable(seed):
+                raise ManifestError(f"{manifest.name}: seeds module {qualified} defines no seed()")
+            seeders.append((manifest.name, seed))
+    return seeders
+
+
 def mount_routers(app: FastAPI) -> list[str]:
     import_models()
     mounted: list[str] = []
@@ -56,7 +72,7 @@ def mount_routers(app: FastAPI) -> list[str]:
                 tenant,
                 prefix=prefix,
                 tags=[manifest.name],
-                dependencies=[Depends(get_tenant_session)],
+                dependencies=[Depends(get_tenant_session, scope="function")],
             )
         mounted.append(manifest.name)
     return mounted

@@ -1,16 +1,20 @@
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { Button } from '@/core/components/ui/Button'
 import { Field } from '@/core/components/ui/Field'
-
 import { operationLabels } from '@/core/app/registry'
+import { signIn } from '@/core/app/session'
+import { demoSession } from '../fixtures/org'
 
 export function SignInScreen() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from ?? '/home'
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    navigate('/home')
+    signIn(demoSession)
+    navigate(from, { replace: true })
   }
 
   return (

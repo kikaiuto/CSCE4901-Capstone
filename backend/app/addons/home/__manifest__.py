@@ -9,5 +9,5 @@
     "features": ["F14"],
     "router": "router",
     "models": [],
-    "seeds": ["data.demo"],
+    "seeds": [],
 }

@@ -1,16 +1,3 @@
+"""Reuse the two-tenant database and client from backend/tests/conftest.py."""
 
-"""Shared test fixtures for the Inventory addon."""
-
-from tests.conftest import (
-    client,
-    password_hash,
-    sessions,
-    tenants,
-)
-
-__all__ = [
-    "client",
-    "password_hash",
-    "sessions",
-    "tenants",
-]
+from tests.conftest import client, password_hash, sessions, tenants  # noqa: F401

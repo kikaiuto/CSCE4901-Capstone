@@ -32,3 +32,5 @@ class CurrentUserResponse(BaseModel):
     organization_id: UUID
     role: Role
     email: str
+    full_name: str
+    is_active: bool

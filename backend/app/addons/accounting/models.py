@@ -1,11 +1,11 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     CheckConstraint,
+    Date,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     Numeric,
     String,
@@ -27,12 +27,6 @@ class ChartOfAccounts(TenantScoped, Base):
     )
 
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     account_code: Mapped[str] = mapped_column(String(30), nullable=False)
     account_name: Mapped[str] = mapped_column(String(150), nullable=False)
     account_type: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -46,17 +40,15 @@ class JournalEntry(TenantScoped, Base):
             "status IN ('DRAFT', 'POSTED')",
             name="ck_journal_entry_status",
         ),
+        CheckConstraint("source IN ('manual', 'auto')", name="ck_journal_entry_source"),
     )
 
     entry_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="DRAFT")
+    entry_date: Mapped[date] = mapped_column(Date, nullable=False)
+    source: Mapped[str] = mapped_column(String(10), nullable=False, server_default="manual")
     description: Mapped[str | None] = mapped_column(String(500))
+    """The entry memo shown on S-07."""
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -87,13 +79,8 @@ class JournalEntryLine(TenantScoped, Base):
     )
 
     line_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid,
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-        index=True,
-    )
     entry_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     account_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     debit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, server_default="0")
     credit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, server_default="0")
+    memo: Mapped[str | None] = mapped_column(String(500))

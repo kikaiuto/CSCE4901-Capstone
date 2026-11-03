@@ -6,14 +6,13 @@ from datetime import datetime
 from sqlalchemy import (
     Boolean,
     DateTime,
-    ForeignKey,
     ForeignKeyConstraint,
     String,
     UniqueConstraint,
     Uuid,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.core.db import Base
 from app.core.tenancy import TenantRoot, TenantScoped
@@ -22,7 +21,6 @@ from app.core.tenancy import TenantRoot, TenantScoped
 class Organization(TenantRoot, Base):
     __tablename__ = "organizations"
 
-    organization_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -37,9 +35,6 @@ class Role(TenantScoped, Base):
     )
 
     role_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     name: Mapped[str] = mapped_column(String(50), nullable=False)
 
 
@@ -55,9 +50,6 @@ class User(TenantScoped, Base):
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.organization_id"), nullable=False, index=True
-    )
     role_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -70,3 +62,8 @@ class User(TenantScoped, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    @validates("email")
+    def _normalize_email(self, _key: str, value: str) -> str:
+        # Login lowercases the submitted address, so storage must match it.
+        return value.strip().lower()

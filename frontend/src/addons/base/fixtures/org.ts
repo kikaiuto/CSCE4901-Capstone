@@ -1,36 +1,24 @@
-export interface Organization {
-  id: string
-  name: string
-}
+import { ROLES, type Role } from '@/core/app/roles'
+import type { Session, SessionOrganization, SessionUser } from '@/core/app/session'
 
-export const ROLES = [
-  'Owner',
-  'Admin',
-  'Sales',
-  'Inventory',
-  'Purchasing',
-  'Accounting',
-] as const
+export { ROLES, type Role }
 
-export type Role = (typeof ROLES)[number]
-
-export interface CurrentUser {
-  id: string
-  name: string
-  email: string
-  role: Role
-}
-
-export const organization: Organization = {
+export const organization: SessionOrganization = {
   id: 'org_acme',
   name: 'Acme Supply',
 }
 
-export const currentUser: CurrentUser = {
+export const currentUser: SessionUser = {
   id: 'usr_dana',
   name: 'Dana Owens',
   email: 'dana@acmesupply.com',
   role: 'Owner',
+}
+
+export const demoSession: Session = {
+  token: 'demo-fixture-token',
+  user: currentUser,
+  organization,
 }
 
 export const today = '2026-09-25'
