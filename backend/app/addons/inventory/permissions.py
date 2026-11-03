@@ -1,4 +1,6 @@
-"""RBAC permission definitions and access checks for the inventory addon.
+"""Permissions for the current inventory endpoints."""
 
-Features: F4, F5, F6, F9, F19. Requirements: R7, R8, R9, R10, R11, R12, R31.
-"""
+from app.core.rbac import RBACGuard
+from app.core.roles import Role
+
+READ_PRODUCTS = RBACGuard(Role.OWNER, Role.ADMIN, Role.SALES, Role.INVENTORY, Role.PURCHASING)

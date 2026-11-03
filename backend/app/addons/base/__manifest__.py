@@ -8,6 +8,6 @@
     "requirements": ["R1", "R2", "R3", "R4"],
     "features": ["F1", "F2"],
     "router": "router",
-    "models": ["Organization", "User"],
+    "models": ["Organization", "Role", "User"],
     "seeds": ["data.demo"],
 }

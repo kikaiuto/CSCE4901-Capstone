@@ -1,4 +1,10 @@
-"""RBAC permission definitions and access checks for the accounting addon.
+"""Permissions for the accounting endpoints. See security/access.md.
 
-Features: F10, F11, F12, F13, F19. Requirements: R18, R19, R20, R21, R22, R23, R31.
+Requirements: R19.
 """
+
+from app.core.rbac import RBACGuard
+from app.core.roles import Role
+
+READ_ACCOUNTING = RBACGuard(Role.OWNER, Role.ADMIN, Role.ACCOUNTING)
+POST_JOURNAL_ENTRY = RBACGuard(Role.OWNER, Role.ADMIN, Role.ACCOUNTING)

@@ -9,5 +9,5 @@
     "features": ["F17"],
     "router": "router",
     "models": ["Forecast"],
-    "seeds": ["data.demo"],
+    "seeds": [],
 }

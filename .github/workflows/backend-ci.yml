@@ -18,6 +18,23 @@ defaults:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sector7_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/sector7_test
+      SECTOR7_TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/sector7_test
     steps:
       - uses: actions/checkout@v5
 
@@ -35,4 +52,17 @@ jobs:
 
       - run: uv run python -m compileall -q app tests
 
-      - run: uv run pytest
+      - name: Verify migrations
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+
+      - name: PostgreSQL tests
+        run: uv run pytest
+
+      - name: SQLite tests
+        env:
+          SECTOR7_TEST_DATABASE_URL: sqlite+aiosqlite://
+        run: uv run pytest
