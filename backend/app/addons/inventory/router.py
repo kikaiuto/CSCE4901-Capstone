@@ -59,7 +59,7 @@ async def get_product_route(
 async def create_product_route(
     payload: ProductCreateRequest,
     ctx: Annotated[TenantContext, Depends(CREATE_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> ProductResponse:
     """Create a product within the authenticated organization."""
 
