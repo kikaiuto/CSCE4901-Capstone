@@ -6,16 +6,21 @@ Only an explicit public_router bypasses the tenant boundary.
 
 import importlib
 import importlib.util
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.modules.graph import load_order
 from app.core.modules.manifest import Manifest, read_manifest
+from app.core.seeding import DemoTenant
 from app.core.tenancy import get_tenant_session
 
 ADDONS_DIR = Path(__file__).resolve().parent.parent.parent / "addons"
 API_PREFIX = "/api"
+
+Seeder = Callable[[AsyncSession, DemoTenant], Awaitable[int]]
 
 
 def addon_names() -> list[str]:
@@ -39,6 +44,18 @@ def import_models() -> list[str]:
         importlib.import_module(module_name)
         imported.append(module_name)
     return imported
+
+
+def import_seeds() -> list[tuple[str, Seeder]]:
+    """Each addon's seed callables, in load order, from the manifest's seeds."""
+    seeders: list[tuple[str, Seeder]] = []
+    for manifest in manifests_in_load_order():
+        for module_name in manifest.seeds:
+            module = importlib.import_module(f"app.addons.{manifest.name}.{module_name}")
+            seed = getattr(module, "seed", None)
+            if seed is not None:
+                seeders.append((manifest.name, seed))
+    return seeders
 
 
 def mount_routers(app: FastAPI) -> list[str]:
