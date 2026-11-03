@@ -14,6 +14,7 @@ from fastapi.routing import APIRoute
 
 from app.core.modules.loading import manifests_in_load_order
 from app.core.rbac import RBACGuard
+from app.core.tenancy import get_tenant_session
 from app.main import app
 
 
@@ -23,6 +24,24 @@ def dependency_calls(dependant: Dependant) -> list[object]:
         calls.append(dep.call)
         calls += dependency_calls(dep)
     return calls
+
+
+def test_all_tenant_transactions_finish_before_the_response():
+    def dependencies(root):
+        for child in root.dependencies:
+            yield child
+            yield from dependencies(child)
+
+    sessions = [
+        dependency
+        for _, router in addon_routers("router")
+        for route in router.routes
+        if isinstance(route, APIRoute)
+        for dependency in dependencies(route.dependant)
+        if dependency.call is get_tenant_session
+    ]
+    assert sessions
+    assert all(dependency.scope == "function" for dependency in sessions)
 
 
 def addon_routers(attr: str) -> list[tuple[str, APIRouter]]:
