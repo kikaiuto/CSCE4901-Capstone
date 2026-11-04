@@ -42,6 +42,21 @@ class DemoTenant:
         return self.name.split()[0].lower()
 
 
+DEMO_PASSWORD = "sector7-demo"
+DEMO_USERS = (
+    ("Owner", "Dana Owens"),
+    ("Admin", "Mo Ferrara"),
+    ("Sales", "Priya Raman"),
+    ("Inventory", "Lee Carter"),
+    ("Purchasing", "Sam Oyelaran"),
+    ("Accounting", "Ted Brill"),
+)
+
+
+def demo_email(tenant: DemoTenant, role: str) -> str:
+    return f"{role.lower()}@{tenant.slug}.demo"
+
+
 Seeder = Callable[[AsyncSession, DemoTenant], Awaitable[int]]
 
 

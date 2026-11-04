@@ -17,27 +17,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.addons.base.models import Organization, Role, User
 from app.core.roles import Role as AppRole
 from app.core.security import hash_password
-from app.core.seeding import DemoTenant, add_missing
+from app.core.seeding import DEMO_PASSWORD, DEMO_USERS, DemoTenant, add_missing, demo_email
 
 ROLES = tuple(role.value.title() for role in AppRole)
-DEMO_PASSWORD = "sector7-demo"
-DEMO_USERS = (
-    ("Owner", "Dana Owens"),
-    ("Admin", "Mo Ferrara"),
-    ("Sales", "Priya Raman"),
-    ("Inventory", "Lee Carter"),
-    ("Purchasing", "Sam Oyelaran"),
-    ("Accounting", "Ted Brill"),
-)
 
 
 @cache
 def demo_password_hash() -> str:
     return hash_password(DEMO_PASSWORD)
-
-
-def demo_email(tenant: DemoTenant, role: str) -> str:
-    return f"{role.lower()}@{tenant.slug}.demo"
 
 
 async def seed(session: AsyncSession, tenant: DemoTenant) -> int:

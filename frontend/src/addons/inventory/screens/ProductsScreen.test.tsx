@@ -1,8 +1,10 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { signIn } from '@/core/app/session'
 import { jsonResponse, mockFetch } from '@/core/test/fetch'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
+import { demoSession } from '@/addons/base/fixtures/org'
 import { demoCategories, demoProducts } from '../fixtures/catalog'
 import { ProductsScreen } from './ProductsScreen'
 
@@ -90,6 +92,14 @@ describe('ProductsScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'New product' }))
 
     expect(router.state.location.pathname).toBe('/inventory/products/new')
+  })
+
+  it('hides New product from roles that cannot create products', async () => {
+    signIn({ ...demoSession, user: { ...demoSession.user, role: 'Sales' } })
+    renderWithRouter(<ProductsScreen />)
+
+    await waitFor(() => expect(bodyRows()).toHaveLength(demoProducts.length))
+    expect(screen.queryByRole('button', { name: 'New product' })).not.toBeInTheDocument()
   })
 
   it('leaves export unwired', () => {

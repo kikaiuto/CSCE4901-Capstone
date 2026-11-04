@@ -23,15 +23,19 @@ function useFetch<T>(key: string | null) {
     error: null,
   })
   const [tick, setTick] = useState(0)
+  const loadedKey = useRef<string | null>(null)
 
   useEffect(() => {
     if (key === null) {
+      loadedKey.current = null
       setState({ data: null, loading: false, error: null })
       return
     }
 
     const controller = new AbortController()
-    setState((current) => ({ ...current, loading: true }))
+    const sameKey = loadedKey.current === key
+    loadedKey.current = key
+    setState((current) => ({ data: sameKey ? current.data : null, loading: true, error: null }))
 
     authorized<T>(key, { signal: controller.signal })
       .then((data) => setState({ data, loading: false, error: null }))
@@ -97,6 +101,7 @@ export function useMutation<TIn, TOut>(
 
   const run = useCallback(
     async (input: TIn) => {
+      inFlight.current?.abort()
       const controller = new AbortController()
       inFlight.current = controller
       setPending(true)
@@ -104,7 +109,7 @@ export function useMutation<TIn, TOut>(
       try {
         return await fn(input, controller.signal)
       } catch (cause) {
-        if (mounted.current && !isAbort(cause)) {
+        if (mounted.current && !isAbort(cause) && inFlight.current === controller) {
           setError(
             cause instanceof ApiError
               ? cause
@@ -113,8 +118,10 @@ export function useMutation<TIn, TOut>(
         }
         throw cause
       } finally {
-        if (inFlight.current === controller) inFlight.current = null
-        if (mounted.current) setPending(false)
+        if (inFlight.current === controller) {
+          inFlight.current = null
+          if (mounted.current) setPending(false)
+        }
       }
     },
     [fn],

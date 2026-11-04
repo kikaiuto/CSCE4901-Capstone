@@ -55,7 +55,7 @@ export function ProductScreen() {
     return (
       <EmptyState
         title="This record is not wired to the catalog yet"
-        detail={`${sku} is in the product list, but the stock ledger behind this screen still comes from sample data.`}
+        detail={`The stock ledger behind this screen still comes from sample data, and nothing in it matches ${sku}.`}
       />
     )
   }

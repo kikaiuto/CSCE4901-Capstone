@@ -37,13 +37,11 @@ export function describeFailure(error: unknown): SignInProblem {
   return { form: error.message }
 }
 
-const signIn = (credentials: Credentials) => signInWithPassword(credentials)
-
 export function useSignIn(organizationId: string | null) {
   const [email, setEmailState] = useState('')
   const [password, setPasswordState] = useState('')
   const [errors, setErrors] = useState<SignInErrors>({})
-  const mutation = useMutation<Credentials, Session>(signIn)
+  const mutation = useMutation<Credentials, Session>(signInWithPassword)
 
   const setEmail = useCallback((value: string) => {
     setEmailState(value)
@@ -69,6 +67,7 @@ export function useSignIn(organizationId: string | null) {
       await mutation.run({ organizationId, email: trimmedEmail, password })
       return true
     } catch (cause) {
+      if (cause instanceof DOMException && cause.name === 'AbortError') return false
       setErrors(describeFailure(cause))
       return false
     }

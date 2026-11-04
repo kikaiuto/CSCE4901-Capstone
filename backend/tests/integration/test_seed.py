@@ -5,13 +5,12 @@ import uuid
 from sqlalchemy import func, select
 
 from app.addons.accounting.models import ChartOfAccounts
-from app.addons.base.data.demo import DEMO_PASSWORD, demo_email
 from app.addons.base.models import Organization, Role, User
 from app.addons.inventory.models import Product
 from app.addons.procurement.models import Supplier
 from app.addons.sales.models import Customer
 from app.core.modules.loading import import_seeds
-from app.core.seeding import demo_tenants, seed_demo
+from app.core.seeding import DEMO_PASSWORD, demo_email, demo_tenants, seed_demo
 
 NORTHSTAR = uuid.UUID("6fd03a14-80fd-5476-a84e-ae0c2c0c6e4d")
 CEDAR = uuid.UUID("d3d1a2ca-f45e-5da5-8ef8-3486edc3fe4a")

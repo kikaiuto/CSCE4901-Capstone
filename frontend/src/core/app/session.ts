@@ -156,14 +156,22 @@ export function sessionFromApi(
   }
 }
 
-export async function signInWithPassword(credentials: Credentials): Promise<Session> {
-  const token = await api.post<TokenResponse>('/api/base/auth/login', {
-    organization_id: credentials.organizationId,
-    email: credentials.email,
-    password: credentials.password,
-  })
+export async function signInWithPassword(
+  credentials: Credentials,
+  signal?: AbortSignal,
+): Promise<Session> {
+  const token = await api.post<TokenResponse>(
+    '/api/base/auth/login',
+    {
+      organization_id: credentials.organizationId,
+      email: credentials.email,
+      password: credentials.password,
+    },
+    { signal },
+  )
   const me = await api.get<CurrentUserResponse>('/api/base/auth/me', {
     token: token.access_token,
+    signal,
   })
   const session = sessionFromApi(token.access_token, me, token.expires_in)
   signIn(session)

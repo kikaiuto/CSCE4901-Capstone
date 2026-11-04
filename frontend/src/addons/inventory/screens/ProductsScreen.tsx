@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { useAccess } from '@/core/app/useAccess'
 import { Button } from '@/core/components/ui/Button'
 import { EmptyState } from '@/core/components/ui/EmptyState'
 import { SelectShell } from '@/core/components/ui/Field'
@@ -25,12 +26,13 @@ export function ProductsScreen() {
   const products = useProducts()
   const categories = useCategories()
   const names = useMemo(() => categoryNames(categories.items), [categories.items])
+  const { canWrite } = useAccess('Inventory')
 
-  const newProduct = (
+  const newProduct = canWrite ? (
     <Button variant="primary" onClick={() => navigate('/inventory/products/new')}>
       New product
     </Button>
-  )
+  ) : null
 
   return (
     <div className={cn(fresh && 'rise', 'mx-auto max-w-6xl pb-16')}>
@@ -113,7 +115,11 @@ export function ProductsScreen() {
       {!products.loading && !products.error && products.items.length === 0 && (
         <EmptyState
           title="No products yet"
-          detail="Add the first product to start tracking stock."
+          detail={
+            canWrite
+              ? 'Add the first product to start tracking stock.'
+              : 'Nothing has been added to the catalog for this organization.'
+          }
           action={newProduct}
         />
       )}

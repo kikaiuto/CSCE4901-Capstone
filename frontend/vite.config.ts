@@ -23,7 +23,10 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy,
       fs: {
-        allow: [fileURLToPath(new URL('..', import.meta.url))],
+        allow: [
+          fileURLToPath(new URL('.', import.meta.url)),
+          fileURLToPath(new URL('../backend/app/addons', import.meta.url)),
+        ],
       },
     },
     preview: {

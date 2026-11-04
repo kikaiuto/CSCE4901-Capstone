@@ -17,11 +17,10 @@ import asyncio
 
 from sqlalchemy.engine import make_url
 
-from app.addons.base.data.demo import DEMO_PASSWORD, DEMO_USERS, demo_email
 from app.core.config import get_settings
 from app.core.db import get_engine, get_session_factory
 from app.core.modules.loading import import_models, import_seeds
-from app.core.seeding import demo_tenants, seed_demo
+from app.core.seeding import DEMO_PASSWORD, DEMO_USERS, demo_email, demo_tenants, seed_demo
 
 LOCAL_HOSTS = frozenset({"postgres", "localhost", "127.0.0.1"})
 
