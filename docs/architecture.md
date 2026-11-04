@@ -162,10 +162,11 @@ app shell sends a visitor without a session back to sign in. See ADR 0002.
 
 ## Deployment Topology
 
-The AWS account, who can sign in to it, and where secrets live are covered in
-[infra/aws-account-setup.md](infra/aws-account-setup.md). The first Terraform to
-apply is `infra/terraform/bootstrap/`, which creates the state bucket and the
-GitHub Actions role; the `modules/` directories are still stubs.
+The local Compose stack is the only environment today. Cloud deployment is
+parked: `infra/terraform/bootstrap/` would create the state bucket and the GitHub
+Actions role, and the `modules/` directories are stubs. The Terraform CI job
+only formats and validates them. [infra/aws-account-setup.md](infra/aws-account-setup.md)
+records the account plan for when that work resumes.
 
 ## Observability
 

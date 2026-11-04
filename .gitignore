@@ -67,3 +67,7 @@ ehthumbs.db
 *.swo
 *~
 
+
+# --- Regenerable output ---
+frontend/shots/
+graphify-out/
