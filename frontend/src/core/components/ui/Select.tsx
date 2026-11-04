@@ -7,19 +7,36 @@ export interface SelectOption {
   label: string
 }
 
-export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> {
+export type SelectSize = 'sm' | 'md'
+
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id' | 'size'> {
   label: string
   options: SelectOption[]
   error?: string
+  size?: SelectSize
+  labelHidden?: boolean
 }
 
-export function Select({ label, options, error, className, ...props }: SelectProps) {
+const SIZES: Record<SelectSize, string> = {
+  sm: 'h-9',
+  md: 'h-10',
+}
+
+export function Select({
+  label,
+  options,
+  error,
+  size = 'md',
+  labelHidden = false,
+  className,
+  ...props
+}: SelectProps) {
   const id = useId()
   const errorId = `${id}-error`
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm text-ink-muted">
+    <div className={cn('flex flex-col', !labelHidden && 'gap-1.5')}>
+      <label htmlFor={id} className={labelHidden ? 'sr-only' : 'text-sm text-ink-muted'}>
         {label}
       </label>
       <div className="relative">
@@ -29,8 +46,9 @@ export function Select({ label, options, error, className, ...props }: SelectPro
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'h-10 w-full appearance-none rounded-control border bg-surface pr-9 pl-3 text-base text-ink',
+            'w-full appearance-none rounded-control border bg-surface pr-9 pl-3 text-base text-ink',
             'focus:outline-none',
+            SIZES[size],
             error ? 'border-negative focus:border-negative' : 'border-line-strong focus:border-accent',
             className,
           )}
@@ -57,7 +75,7 @@ export function Select({ label, options, error, className, ...props }: SelectPro
         </svg>
       </div>
       {error && (
-        <p id={errorId} role="alert" className="text-xs text-negative">
+        <p id={errorId} role="alert" className={cn('text-xs text-negative', labelHidden && 'mt-1')}>
           {error}
         </p>
       )}
