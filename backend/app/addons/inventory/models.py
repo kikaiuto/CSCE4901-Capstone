@@ -98,6 +98,39 @@ class InventoryLedger(TenantScoped, Base):
     unit_cost: Mapped[Decimal] = mapped_column(
         Numeric(12, 4), nullable=False, default=Decimal("0"), server_default="0"
     )
+    reason: Mapped[str | None] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class StockReservation(TenantScoped, Base):
+    """Append-only, like the ledger: +quantity on reserve, -quantity on release or
+    ship. A product's committed stock is the sum; a document's is its own sum."""
+
+    __tablename__ = "stock_reservations"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "product_id"], ["products.organization_id", "products.product_id"]
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "user_id"], ["users.organization_id", "users.user_id"]
+        ),
+        Index("ix_stock_reservations_document", "organization_id", "document_id"),
+        Index("ix_stock_reservations_product", "organization_id", "product_id"),
+        CheckConstraint("change_quantity <> 0", name="ck_stock_reservation_nonzero"),
+    )
+
+    reservation_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("organizations.organization_id"), nullable=False
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    document_kind: Mapped[str] = mapped_column(String(30), nullable=False)
+    document_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    document_number: Mapped[str] = mapped_column(String(150), nullable=False)
+    change_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
