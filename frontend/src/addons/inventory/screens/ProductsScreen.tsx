@@ -1,115 +1,121 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { useMemo } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { Button } from '@/core/components/ui/Button'
 import { EmptyState } from '@/core/components/ui/EmptyState'
-import { Figure } from '@/core/components/ui/Figure'
 import { SelectShell } from '@/core/components/ui/Field'
+import { Figure } from '@/core/components/ui/Figure'
 import { PageHeader } from '@/core/components/ui/PageHeader'
-import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
-import { Tabs, type TabItem } from '@/core/components/ui/Tabs'
 import { cn } from '@/core/lib/cn'
 import { countOf } from '@/core/lib/text'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
-import { products, productTotals, type StockState } from '../fixtures/products'
+import { categoryNames, useCategories, useProducts } from '../hooks/useCatalog'
 
-type Filter = StockState | 'all'
-
-const TABS: readonly TabItem<Filter>[] = [
-  { id: 'all', label: 'All', count: products.length },
-  { id: 'ok', label: 'In stock', count: products.filter((p) => p.state === 'ok').length },
-  { id: 'low', label: 'Below safety', count: products.filter((p) => p.state === 'low').length },
-  { id: 'out', label: 'Out of stock', count: products.filter((p) => p.state === 'out').length },
-]
-
-const STATE_LABEL: Record<StockState, 'active' | 'submitted' | 'cancelled'> = {
-  ok: 'active',
-  low: 'submitted',
-  out: 'cancelled',
+function NotTracked() {
+  return (
+    <span aria-label="Not tracked yet" className="text-ink-faint">
+      —
+    </span>
+  )
 }
 
 export function ProductsScreen() {
-  const [filter, setFilter] = useState<Filter>('all')
+  const navigate = useNavigate()
   const fresh = useFirstVisit('inventory/products')
+  const products = useProducts()
+  const categories = useCategories()
+  const names = useMemo(() => categoryNames(categories.items), [categories.items])
 
-  const rows = useMemo(
-    () => (filter === 'all' ? products : products.filter((product) => product.state === filter)),
-    [filter],
+  const newProduct = (
+    <Button variant="primary" onClick={() => navigate('/inventory/products/new')}>
+      New product
+    </Button>
   )
 
   return (
     <div className={cn(fresh && 'rise', 'mx-auto max-w-6xl pb-16')}>
       <PageHeader
         title="Products"
-        actions={
-          <Button variant="primary" unwired>
-            New product
-          </Button>
+        meta={
+          !products.loading && (
+            <p className="text-base text-ink-muted">{countOf(products.items.length, 'product')}</p>
+          )
         }
+        actions={newProduct}
       />
-
-      <Tabs items={TABS} active={filter} onChange={setFilter} className="mt-6" />
 
       <div className="flex items-center gap-2.5 py-4">
         <SelectShell value="Category" unwired />
         <SelectShell value="Warehouse" unwired />
 
-        <div className="ml-auto flex items-center gap-3">
-          <p className="text-base text-ink-muted">
-            {countOf(productTotals.count, 'product')} ·{' '}
-            <Figure value={productTotals.stockValue} kind="money" tone="muted" />
-          </p>
+        <div className="ml-auto">
           <Button unwired>Export</Button>
         </div>
       </div>
 
-      <Table>
-        <ColumnHeaders>
-          <Th className="pl-3">SKU</Th>
-          <Th>Name</Th>
-          <Th>Category</Th>
-          <Th align="right">On hand</Th>
-          <Th align="right">Available</Th>
-          <Th align="right">Avg cost</Th>
-          <Th className="w-32 pl-6">Stock</Th>
-        </ColumnHeaders>
+      {products.error && (
+        <p role="alert" className="mb-4 text-base text-negative">
+          {products.error}
+        </p>
+      )}
 
-        <TBody>
-          {rows.map((product) => (
-            <Tr key={product.id}>
-              <Td className="pl-3">
-                <Link
-                  to={`/inventory/products/${product.sku}`}
-                  className="figure text-accent hover:underline"
-                >
-                  {product.sku}
-                </Link>
-              </Td>
-              <Td>{product.name}</Td>
-              <Td className="text-ink-muted">{product.category}</Td>
-              <Td align="right">
-                <Figure
-                  value={product.onHand}
-                  kind="quantity"
-                  tone={product.state === 'out' ? 'negative' : 'default'}
-                />
-              </Td>
-              <Td align="right">
-                <Figure value={product.available} kind="quantity" tone="muted" />
-              </Td>
-              <Td align="right">
-                <Figure value={product.avgCost} places={4} tone="muted" />
-              </Td>
-              <Td className="pl-6">
-                <StatusPill status={STATE_LABEL[product.state]} />
-              </Td>
-            </Tr>
-          ))}
-        </TBody>
-      </Table>
+      {products.loading && (
+        <p role="status" className="py-4 text-base text-ink-muted">
+          Loading products…
+        </p>
+      )}
 
-      {rows.length === 0 && (
-        <EmptyState title="No products here" detail="Nothing matches this stock filter." />
+      {!products.loading && !products.error && (
+        <Table>
+          <ColumnHeaders>
+            <Th className="pl-3">SKU</Th>
+            <Th>Name</Th>
+            <Th>Category</Th>
+            <Th align="right">On hand</Th>
+            <Th align="right">Available</Th>
+            <Th align="right">Avg cost</Th>
+            <Th align="right" className="pr-3">
+              Unit price
+            </Th>
+          </ColumnHeaders>
+
+          <TBody>
+            {products.items.map((product) => (
+              <Tr key={product.product_id}>
+                <Td className="pl-3">
+                  <Link
+                    to={`/inventory/products/${product.sku}`}
+                    className="figure text-accent hover:underline"
+                  >
+                    {product.sku}
+                  </Link>
+                </Td>
+                <Td>{product.name}</Td>
+                <Td className="text-ink-muted">{names.get(product.category_id) ?? '—'}</Td>
+                <Td align="right">
+                  <NotTracked />
+                </Td>
+                <Td align="right">
+                  <NotTracked />
+                </Td>
+                <Td align="right">
+                  <Figure value={product.average_cost} places={4} tone="muted" />
+                </Td>
+                <Td align="right" className="pr-3">
+                  <Figure value={product.unit_price} kind="money" />
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      )}
+
+      {!products.loading && !products.error && products.items.length === 0 && (
+        <EmptyState
+          title="No products yet"
+          detail="Add the first product to start tracking stock."
+          action={newProduct}
+        />
       )}
     </div>
   )

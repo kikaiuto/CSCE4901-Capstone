@@ -1,51 +1,100 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { jsonResponse, mockFetch } from '@/core/test/fetch'
 import { renderWithRouter } from '@/core/test/renderWithRouter'
-import { products } from '../fixtures/products'
+import { demoCategories, demoProducts } from '../fixtures/catalog'
 import { ProductsScreen } from './ProductsScreen'
+
+const fetchMock = mockFetch()
+
+function serve(products = demoProducts, categories = demoCategories) {
+  fetchMock.mockImplementation(async (input) =>
+    String(input).includes('/categories') ? jsonResponse(categories) : jsonResponse(products),
+  )
+}
 
 function bodyRows() {
   const [, ...rows] = screen.getAllByRole('row')
   return rows
 }
 
+beforeEach(() => {
+  serve()
+})
+
 describe('ProductsScreen', () => {
-  it('lists every product on the All tab', () => {
+  it('lists every product the API returns', async () => {
     renderWithRouter(<ProductsScreen />)
 
-    expect(bodyRows()).toHaveLength(products.length)
+    await waitFor(() => expect(bodyRows()).toHaveLength(demoProducts.length))
+    expect(screen.getByText('3 products')).toBeInTheDocument()
   })
 
-  it('filters down to the items below safety stock', async () => {
-    const user = userEvent.setup()
+  it('asks for the products and the categories of the signed-in organization', async () => {
     renderWithRouter(<ProductsScreen />)
 
-    await user.click(screen.getByRole('tab', { name: /Below safety/ }))
-
-    expect(bodyRows()).toHaveLength(products.filter((p) => p.state === 'low').length)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    const urls = fetchMock.mock.calls.map(([input]) => String(input)).sort()
+    expect(urls).toEqual(['/api/inventory/categories', '/api/inventory/products?limit=100'])
   })
 
-  it('links each SKU through to its record', () => {
+  it('names the category instead of showing its id', async () => {
     renderWithRouter(<ProductsScreen />)
 
-    expect(screen.getByRole('link', { name: 'WA-100' })).toHaveAttribute(
+    await waitFor(() => expect(screen.getAllByText('Accessories')).toHaveLength(2))
+    expect(screen.queryByText('cat-accessories')).not.toBeInTheDocument()
+  })
+
+  it('links each SKU through to its record', async () => {
+    renderWithRouter(<ProductsScreen />)
+
+    expect(await screen.findByRole('link', { name: 'LAP-01' })).toHaveAttribute(
       'href',
-      '/inventory/products/WA-100',
+      '/inventory/products/LAP-01',
     )
   })
 
-  it('shows a stock-out quantity as negative', () => {
+  it('marks stock columns as not tracked rather than inventing numbers', async () => {
     renderWithRouter(<ProductsScreen />)
 
-    expect(screen.getByText('-12')).toBeInTheDocument()
+    await waitFor(() => expect(bodyRows()).toHaveLength(demoProducts.length))
+    const [first] = bodyRows()
+    expect(within(first).getAllByLabelText('Not tracked yet')).toHaveLength(2)
+    expect(within(first).getByText('550.0000')).toBeInTheDocument()
   })
 
-  it('leaves the write actions unwired', () => {
+  it('says what went wrong when the list cannot load', async () => {
+    fetchMock.mockImplementation(async () =>
+      jsonResponse({ error: 'forbidden', message: 'Your role cannot see products', details: {} }, 403),
+    )
     renderWithRouter(<ProductsScreen />)
 
-    for (const name of ['New product', 'Export']) {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true')
-    }
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your role cannot see products')
+  })
+
+  it('offers to add the first product when there are none', async () => {
+    serve([], demoCategories)
+    renderWithRouter(<ProductsScreen />)
+
+    expect(await screen.findByText('No products yet')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'New product' })).toHaveLength(2)
+  })
+
+  it('opens the new product form', async () => {
+    const { router } = renderWithRouter(<ProductsScreen />, {
+      path: '/inventory/products',
+      extraRoutes: [{ path: '/inventory/products/new', element: <p>Form</p> }],
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'New product' }))
+
+    expect(router.state.location.pathname).toBe('/inventory/products/new')
+  })
+
+  it('leaves export unwired', () => {
+    renderWithRouter(<ProductsScreen />)
+
+    expect(screen.getByRole('button', { name: 'Export' })).toHaveAttribute('aria-disabled', 'true')
   })
 })
