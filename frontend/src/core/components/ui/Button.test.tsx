@@ -36,6 +36,23 @@ describe('Button', () => {
 
     expect(screen.getByText('N')).toBeInTheDocument()
   })
+
+  it('is busy and cannot be pressed again while loading', async () => {
+    const onClick = vi.fn()
+    render(
+      <Button loading onClick={onClick}>
+        Signing in…
+      </Button>,
+    )
+
+    const button = screen.getByRole('button')
+    await userEvent.click(button)
+
+    expect(button).toHaveAttribute('aria-busy', 'true')
+    expect(button).toBeDisabled()
+    expect(button).not.toHaveAttribute('aria-disabled')
+    expect(onClick).not.toHaveBeenCalled()
+  })
 })
 
 describe('Button when unwired', () => {
