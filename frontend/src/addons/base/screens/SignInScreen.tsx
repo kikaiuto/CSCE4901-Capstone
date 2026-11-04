@@ -106,10 +106,10 @@ function CredentialsStep({
 
   return (
     <>
-      <div className="flex items-center gap-3">
-        <Avatar name={workspace.name} shape="square" className="size-10 text-sm" />
+      <div className="flex items-start gap-3">
+        <Avatar name={workspace.name} shape="square" className="mt-0.5 size-10 text-sm" />
         <div className="min-w-0">
-          <h1 className="display truncate text-xl">Sign in to {workspace.name}</h1>
+          <h1 className="display text-xl leading-tight">Sign in to {workspace.name}</h1>
           <button
             type="button"
             onClick={onChange}

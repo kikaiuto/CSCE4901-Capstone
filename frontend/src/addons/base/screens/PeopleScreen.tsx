@@ -124,7 +124,7 @@ export function PeopleScreen() {
               <TBody>
                 {people.map((person) => (
                   <Tr key={person.id}>
-                    <Td className="pl-3">{person.name}</Td>
+                    <Td className="pl-3 whitespace-nowrap">{person.name}</Td>
                     <Td className="text-ink-muted">{person.email}</Td>
                     <Td>
                       <SelectShell value={person.role ?? 'Unknown'} unwired />

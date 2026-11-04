@@ -2,15 +2,18 @@ import { mkdirSync } from 'node:fs'
 
 const BASE = process.argv[2] ?? 'http://localhost:5173'
 const OUT = process.argv[3] ?? './shots'
+const WORKSPACE = process.env.DEMO_WORKSPACE ?? 'Northstar Electronics Demo'
+const EMAIL = process.env.DEMO_EMAIL ?? 'owner@northstar.demo'
+const PASSWORD = process.env.DEMO_PASSWORD ?? 'sector7-demo'
 
 const ROUTES = [
-  ['sign-in', '/'],
   ['home', '/home'],
   ['sales-orders', '/sales/orders'],
   ['sales-order', '/sales/orders/SO-1044'],
   ['sales-customers', '/sales/customers'],
   ['sales-customer', '/sales/customers/cus-riverside'],
   ['inventory-products', '/inventory/products'],
+  ['inventory-product-new', '/inventory/products/new'],
   ['inventory-product', '/inventory/products/WA-100'],
   ['procurement-orders', '/procurement/orders'],
   ['procurement-receive', '/procurement/orders/PO-0214'],
@@ -62,11 +65,7 @@ page.on('console', (message) => {
 })
 page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`))
 
-for (const [name, path] of ROUTES) {
-  await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(450)
-  await page.screenshot({ path: `${OUT}/${name}.png` })
-
+async function describe(name) {
   const shown = await page.evaluate(() => {
     const body = getComputedStyle(document.body)
     return {
@@ -79,14 +78,43 @@ for (const [name, path] of ROUTES) {
   if (!shown.text.trim()) problems.push(`${name}: page rendered no text`)
 
   console.log(
-    `${name.padEnd(20)} bg=${shown.bg.padEnd(20)} font=${shown.font.padEnd(18)} "${shown.text.slice(0, 34)}"`,
+    `${name.padEnd(22)} bg=${shown.bg.padEnd(20)} font=${shown.font.padEnd(18)} "${shown.text.slice(0, 34)}"`,
   )
+}
+
+async function capture(name) {
+  await page.waitForTimeout(450)
+  await page.screenshot({ path: `${OUT}/${name}.png` })
+  await describe(name)
+}
+
+await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+await page.evaluate(() => localStorage.clear())
+await page.reload({ waitUntil: 'networkidle' })
+await capture('sign-in')
+
+await page.getByRole('button', { name: WORKSPACE }).click()
+await capture('sign-in-credentials')
+
+await page.getByLabel('Email', { exact: true }).fill(EMAIL)
+await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
+await page.getByRole('button', { name: /^Sign in/ }).click()
+
+try {
+  await page.waitForURL(`${BASE}/home`, { timeout: 10_000 })
+} catch {
+  problems.push(`sign-in: did not reach /home as ${EMAIL}; is the demo data seeded?`)
+}
+
+for (const [name, path] of ROUTES) {
+  await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' })
+  await capture(name)
 }
 
 await context.close()
 await browser.close()
 
-console.log(`\nwrote ${ROUTES.length} screenshots to ${OUT}`)
+console.log(`\nwrote ${ROUTES.length + 2} screenshots to ${OUT}`)
 console.log('--- problems ---')
 console.log(problems.length ? problems.join('\n') : 'none')
 
