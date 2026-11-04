@@ -6,7 +6,13 @@ from uuid import UUID
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.addons.base.models import Role, User
+from app.addons.base.models import Organization, Role, User
+
+
+async def get_organization(session: AsyncSession, *, organization_id: UUID) -> Organization | None:
+    return await session.scalar(
+        select(Organization).where(Organization.organization_id == organization_id)
+    )
 
 
 def _users_with_roles() -> Select:

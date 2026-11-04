@@ -51,15 +51,23 @@ async def _verify(password: str, stored_hash: str | None) -> bool:
     return await asyncio.to_thread(_verify_in_thread, password, stored_hash)
 
 
-def _response(user: User, role: Role) -> CurrentUserResponse:
+def _response(user: User, role: Role, organization_name: str) -> CurrentUserResponse:
     return CurrentUserResponse(
         user_id=user.user_id,
         organization_id=user.organization_id,
+        organization_name=organization_name,
         role=role,
         email=user.email,
         full_name=user.full_name,
         is_active=user.is_active,
     )
+
+
+async def _organization_name(session: AsyncSession, organization_id: UUID) -> str:
+    organization = await repository.get_organization(session, organization_id=organization_id)
+    if organization is None:
+        raise Unauthorized(INVALID_CREDENTIALS)
+    return organization.name
 
 
 def _with_known_roles(rows: Iterable[tuple[User, str]]) -> Iterator[tuple[User, Role]]:
@@ -114,7 +122,8 @@ async def current_user(session: AsyncSession, ctx: TenantContext) -> CurrentUser
     if match is None:
         raise Unauthorized(INVALID_CREDENTIALS)
     user, role_name = match
-    return _response(user, _own_role(role_name))
+    organization_name = await _organization_name(session, ctx.organization_id)
+    return _response(user, _own_role(role_name), organization_name)
 
 
 class IdentityService:
@@ -137,4 +146,5 @@ class IdentityService:
 
 async def list_people(session: AsyncSession, ctx: TenantContext) -> list[CurrentUserResponse]:
     rows = await repository.list_users(session, organization_id=ctx.organization_id)
-    return [_response(user, role) for user, role in _with_known_roles(rows)]
+    organization_name = await _organization_name(session, ctx.organization_id)
+    return [_response(user, role, organization_name) for user, role in _with_known_roles(rows)]

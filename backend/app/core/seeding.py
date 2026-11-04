@@ -37,6 +37,10 @@ class DemoTenant:
     def id_for(self, *parts: str) -> UUID:
         return demo_uuid(self.name, *parts)
 
+    @property
+    def slug(self) -> str:
+        return self.name.split()[0].lower()
+
 
 Seeder = Callable[[AsyncSession, DemoTenant], Awaitable[int]]
 

@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.inventory import repository
-from app.addons.inventory.models import Product
+from app.addons.inventory.models import Product, ProductCategory
 from app.addons.inventory.schemas import ProductCreateRequest
 from app.core.contracts.accounting import AccountType
 from app.core.errors import AppError, Conflict, NotFound
@@ -92,6 +92,15 @@ def _is_duplicate_sku_error(exc: IntegrityError) -> bool:
         return True
 
     return False
+
+
+async def list_categories(
+    session: AsyncSession,
+    organization_id: UUID,
+) -> list[ProductCategory]:
+    """Return product categories belonging to the current organization."""
+
+    return await repository.list_categories(session=session, organization_id=organization_id)
 
 
 async def list_products(

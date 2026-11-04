@@ -8,15 +8,16 @@ manifest. This script only checks that the target is the local database and
 hands the seeders to core.seeding.seed_demo, which runs them in addon load
 order inside one transaction.
 
-It seeds reference and business-master data, NOT users, fulfilled sales,
-posted journals, or inventory movements. Those need the authenticated and
-transaction-safe business services before reliable historical seeding.
+It seeds reference data, business-master data, and one demo user per role.
+Fulfilled sales, posted journals, and inventory movements wait for the
+transaction-safe business services.
 """
 
 import asyncio
 
 from sqlalchemy.engine import make_url
 
+from app.addons.base.data.demo import DEMO_PASSWORD, DEMO_USERS, demo_email
 from app.core.config import get_settings
 from app.core.db import get_engine, get_session_factory
 from app.core.modules.loading import import_models, import_seeds
@@ -46,11 +47,14 @@ async def main() -> None:
     async with get_session_factory()() as session:
         added = await seed_demo(session, import_seeds())
     await get_engine().dispose()
-    for tenant in demo_tenants():
-        print(f"{tenant.name}: {tenant.organization_id}")
     for addon, count in added.items():
         print(f"  {addon}: {count} new row(s)")
-    print("No users, journal postings, inventory movements, or sales history were created.")
+    print(f"Demo users share the password {DEMO_PASSWORD!r}:")
+    for tenant in demo_tenants():
+        print(f"{tenant.name}: {tenant.organization_id}")
+        for role, _ in DEMO_USERS:
+            print(f"  {role:<11} {demo_email(tenant, role)}")
+    print("No journal postings, inventory movements, or sales history were created.")
 
 
 if __name__ == "__main__":

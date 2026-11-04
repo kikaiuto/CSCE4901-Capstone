@@ -1,4 +1,3 @@
-
 """Pydantic schemas for inventory API requests and responses."""
 
 from decimal import Decimal
@@ -16,8 +15,19 @@ class ProductResponse(BaseModel):
     category_id: UUID
     name: str
     sku: str
+    unit_cost: Decimal
+    average_cost: Decimal
     unit_price: Decimal
     safety_stock_threshold: int
+
+
+class CategoryResponse(BaseModel):
+    """Response schema for product categories."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    category_id: UUID
+    name: str
 
 
 class ProductCreateRequest(BaseModel):

@@ -15,14 +15,15 @@ isolation and the permissions assigned to the authenticated user.
 
 ## Product Permissions
 
-`READ_PRODUCTS` controls access to product-list and
-product-detail endpoints.
+`READ_PRODUCTS` controls access to the product-list, product-detail,
+and category-list endpoints.
 
 `CREATE_PRODUCTS` controls access to the product-creation endpoint.
 
 | Action | Owner | Admin | Sales | Inventory | Purchasing | Accounting |
 | --- | --- | --- | --- | --- | --- | --- |
 | Read organization products | Yes | Yes | Yes | Yes | Yes | No |
+| Read organization categories | Yes | Yes | Yes | Yes | Yes | No |
 | Create product | Yes | Yes | No | Yes | No | No |
 
 ## Read Product Access
