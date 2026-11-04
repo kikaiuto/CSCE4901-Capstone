@@ -1,4 +1,11 @@
-import type { AddonManifest, NavEntry, NavGroup } from './manifest'
+import {
+  isScreenRoute,
+  type AddonManifest,
+  type NavEntry,
+  type NavGroup,
+  type RouteContribution,
+  type ScreenRoute,
+} from './manifest'
 import { manifest as accounting } from '@/addons/accounting/manifest'
 import { manifest as ai } from '@/addons/ai/manifest'
 import { manifest as base } from '@/addons/base/manifest'
@@ -27,6 +34,20 @@ export const addons: AddonManifest[] = [
 export const addonsByName: Record<string, AddonManifest> = Object.fromEntries(
   addons.map((addon) => [addon.name, addon]),
 )
+
+export interface OwnedRoute {
+  owner: string
+}
+
+export function allRoutes(): (RouteContribution & OwnedRoute)[] {
+  return addons.flatMap((addon) =>
+    addon.routes.map((route) => ({ ...route, owner: addon.name })),
+  )
+}
+
+export function screenRoutes(): (ScreenRoute & OwnedRoute)[] {
+  return allRoutes().filter((route): route is ScreenRoute & OwnedRoute => isScreenRoute(route))
+}
 
 const navEntries: NavItem[] = addons
   .filter((addon): addon is AddonManifest & { nav: NavEntry } => addon.nav !== undefined)
