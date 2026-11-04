@@ -2,7 +2,7 @@ import type { AddonManifest } from '@/core/app/manifest'
 
 export const manifest: AddonManifest = {
   name: 'inventory',
-  depends: ['base'],
+  depends: ['base', 'accounting'],
   screens: ['S-05'],
   nav: {
     label: 'Inventory',
