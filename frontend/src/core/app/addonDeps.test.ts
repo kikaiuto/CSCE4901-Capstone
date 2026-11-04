@@ -69,6 +69,21 @@ describe('addon dependencies', () => {
     expect(cycles).toEqual([])
   })
 
+  it('lets nothing outside core and the addons reach into an addon', () => {
+    const everything = import.meta.glob('/src/**/*.{ts,tsx}', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }) as Record<string, string>
+
+    const reaching = Object.entries(everything)
+      .filter(([path]) => !path.startsWith('/src/core/') && !path.startsWith('/src/addons/'))
+      .filter(([, source]) => /['"]@\/addons\//.test(source))
+      .map(([path]) => path)
+
+    expect(reaching).toEqual([])
+  })
+
   it('reaches from core into an addon only at the known assembly points', () => {
     const coreSources = import.meta.glob('/src/core/**/*.{ts,tsx}', {
       query: '?raw',

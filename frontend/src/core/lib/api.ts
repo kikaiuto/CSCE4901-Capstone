@@ -30,13 +30,17 @@ export class ApiError extends Error {
   }
 }
 
-export function apiUrl(path: string, query?: Query): string {
+export function pathWithQuery(path: string, query?: Query): string {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined) params.set(key, String(value))
   }
   const search = params.toString()
-  return `${API_URL}${path}${search ? `?${search}` : ''}`
+  return `${path}${search ? `?${search}` : ''}`
+}
+
+export function apiUrl(path: string, query?: Query): string {
+  return `${API_URL}${pathWithQuery(path, query)}`
 }
 
 function isErrorBody(value: unknown): value is ApiErrorBody {

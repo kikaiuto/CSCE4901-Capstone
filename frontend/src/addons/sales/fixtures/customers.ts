@@ -1,3 +1,5 @@
+import type { RouteParams } from '@/core/app/routeHandle'
+
 export type CreditStatus = 'active' | 'cancelled'
 
 export interface CustomerDocument {
@@ -150,4 +152,8 @@ export const customerTotals = {
   count: customers.length,
   receivables: '12940.00',
   openOrders: 4,
+}
+
+export function customerCrumb(params: RouteParams): string {
+  return customers.find((customer) => customer.id === params.id)?.name ?? params.id ?? ''
 }

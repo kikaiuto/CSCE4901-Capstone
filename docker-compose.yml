@@ -117,6 +117,7 @@ services:
     volumes:
       - ./frontend:/srv/app
       - frontend_node_modules:/srv/app/node_modules
+      - ./backend/app/addons:/srv/backend/app/addons:ro
     depends_on:
       backend:
         condition: service_healthy

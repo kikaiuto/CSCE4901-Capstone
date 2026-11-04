@@ -34,9 +34,8 @@ backend/app/
 backend/tests/     architecture, authentication, tenant isolation, and transaction tests
 
 frontend/src/
-  core/            app shell, UI primitives, charts, lib, styles, test harness
+  core/            app shell, router, data hooks, notifications, UI primitives, charts
   addons/<name>/   screens, components, fixtures, manifest.ts
-  routes/          the route table
 ```
 
 The rules that hold everywhere are in [`CLAUDE.md`](CLAUDE.md): money is
