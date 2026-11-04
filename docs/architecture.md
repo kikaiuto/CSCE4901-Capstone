@@ -133,11 +133,21 @@ The layout mirrors the backend: `frontend/src/core/` is the framework half and
 `frontend/src/addons/<name>/` holds each addon's screens, components, and
 fixtures.
 
-Each addon declares a `manifest.ts` with its `depends`, its screens, and an
-optional `nav` entry. `core/app/registry.ts` reads the manifests to build the
-module rail, so adding a module does not mean editing a hand-written list.
-`core/app/addonDeps.test.ts` holds the frontend to the same import rule as the
-backend and rejects cycles.
+Each addon declares a `manifest.ts` with its `depends`, its screens, its routes,
+and an optional `nav` entry. `core/app/registry.ts` reads the manifests to build
+the module rail and `core/app/router.tsx` builds the router from the route
+contributions, so adding a screen means editing one manifest, not a hand-written
+table. `core/app/addonDeps.test.ts` holds the frontend to the same import rule
+as the backend, rejects cycles, and lets nothing outside core reach into an
+addon; `core/app/manifestsAgree.test.ts` fails when a frontend manifest's name,
+`depends`, or `screens` drift from the backend's.
+
+These are Odoo's web-client ideas carried over as design rather than code, the
+way ADR 0001 did for the backend: menus and actions declared per module, an
+ORM-style data service (`useList`, `useRecord`, `useMutation` in
+`core/app/data.ts`), and a notification service (`notify` in `core/app/notify.ts`,
+rendered once by the shell). Generic list and record views are the remaining
+piece; ADR 0003 records that decision and why it waits.
 
 Contributions that cross addons go through core, as on the backend. The S-05
 forecast overlay belongs to `forecasting`, which registers it in
