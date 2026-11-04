@@ -53,3 +53,13 @@ async def add_entry(
 ) -> None:
     session.add_all([entry, *lines])
     await session.flush()
+
+
+async def account_ids_by_code(
+    session: AsyncSession, organization_id: UUID, codes: Collection[str]
+) -> dict[str, UUID]:
+    statement = select(ChartOfAccounts.account_code, ChartOfAccounts.account_id).where(
+        ChartOfAccounts.organization_id == organization_id,
+        ChartOfAccounts.account_code.in_(codes),
+    )
+    return {code: account_id for code, account_id in (await session.execute(statement)).all()}

@@ -15,8 +15,16 @@ from app.addons.accounting.schemas import (
     JournalLineOut,
     PostedEntryResponse,
 )
-from app.core.contracts.accounting import EntrySource, JournalEntryDraft, JournalLineDraft
+from app.core.contracts import bind
+from app.core.contracts.accounting import (
+    AccountingContract,
+    EntrySource,
+    JournalEntryDraft,
+    JournalLineDraft,
+)
 from app.core.tenancy import TenantContext, get_tenant_session
+
+bind(AccountingContract, service.AccountingService)
 
 router = APIRouter()
 

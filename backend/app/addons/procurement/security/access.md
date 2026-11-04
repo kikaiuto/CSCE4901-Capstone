@@ -7,4 +7,9 @@ Requirements: R16, R17.
 
 | Action | Owner | Admin | Sales | Inventory | Purchasing | Accounting |
 | --- | --- | --- | --- | --- | --- | --- |
-| _TODO: one row per endpoint_ |  |  |  |  |  |  |
+| List suppliers (`READ_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | Yes |
+| Create a supplier (`MANAGE_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | No |
+| List or open purchase orders (`READ_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | Yes |
+| Create a purchase order (`MANAGE_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | No |
+| Preview a goods receipt (`READ_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | Yes |
+| Receive goods against a purchase order (`MANAGE_PROCUREMENT`) | Yes | Yes | No | Yes | Yes | No |
