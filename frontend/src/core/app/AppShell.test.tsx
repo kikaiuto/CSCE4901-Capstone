@@ -31,6 +31,12 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Skip to content' })).toBeInTheDocument()
   })
 
+  it('mounts one place for notifications', () => {
+    renderWithRouter(<AppShell />)
+
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+  })
+
   it('keeps the command bar closed until it is asked for', () => {
     renderWithRouter(<AppShell />)
 

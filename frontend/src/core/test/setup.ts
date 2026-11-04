@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach } from 'vitest'
+import { notify } from '@/core/app/notify'
 import { signIn, signOut } from '@/core/app/session'
 import { resetFirstVisits } from '@/core/lib/useFirstVisit'
 import { demoSession } from '@/addons/base/fixtures/org'
@@ -51,5 +52,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetFirstVisits()
+  notify.clear()
   signOut()
 })
