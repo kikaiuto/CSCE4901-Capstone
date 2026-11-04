@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy,
+      fs: {
+        allow: [fileURLToPath(new URL('..', import.meta.url))],
+      },
     },
     preview: {
       proxy,
