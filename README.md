@@ -18,7 +18,7 @@ Where things stand today:
 | --- | --- |
 | Frontend | Built. Every screen renders from fixture data, and CI lints, typechecks, tests and builds it. |
 | Backend | Database models, migrations, authentication, tenant isolation, role guards, and product-read APIs are integrated. Operational write services remain to be built. |
-| Infra | Local stack runs under `docker-compose.yml` with `make up`. The Terraform modules are still stubs; see [`docs/infra/aws-account-setup.md`](docs/infra/aws-account-setup.md) for the AWS plan. |
+| Infra | Local stack runs under `docker-compose.yml` with `make up`. That is the only environment for now; the Terraform under `infra/terraform/` is parked until the team picks cloud work back up. |
 
 The frontend still uses fixtures. Any button that would write data is rendered
 visibly inert: dashed border, a leading ✕, and a "Not wired up yet" tooltip. When you build
@@ -116,7 +116,7 @@ defaults to `http://localhost:8000`; set `API_PROXY_TARGET` to point it elsewher
 | A shared UI component | `frontend/src/core/components/ui/` |
 | A chart | `frontend/src/core/components/charts/` (addons may not import Recharts) |
 | Navigation or the app shell | `frontend/src/core/app/` |
-| A backend addon | `backend/app/addons/<name>/__manifest__.py`, then `router.py`, `service.py`, `repository.py` |
+| A backend addon | `backend/app/addons/<name>/__manifest__.py`, then `router.py`, `schemas.py`, `service.py`, `repository.py`, `models.py`, `permissions.py` |
 
 Fixtures in `frontend/src/addons/<name>/fixtures/` are shaped exactly like the
 endpoint response they stand in for. When an endpoint lands, the fixture is the
@@ -142,3 +142,6 @@ passing. CI runs migrations and tests on PostgreSQL 17, then runs the tests
 again on SQLite. See the integration notes for local test commands.
 
 ## Team
+
+CSCE 4901 capstone, University of North Texas. On GitHub: `kikaiuto`, `corbynfang`,
+`AdorableSoul`, `AdamMead-23`, `ArmandoOrtiz-1127`.

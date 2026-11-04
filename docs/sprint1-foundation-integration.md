@@ -138,6 +138,14 @@ same time: when no usable account matches, the submitted password is verified
 against a decoy Argon2 hash, so response timing does not reveal which emails
 exist. Verification runs in a worker thread rather than on the event loop.
 
+The User model normalizes an email when it is assigned, but rows written before
+that validator existed were never normalized. Login therefore compares the stored
+email without regard to case, within the selected organization. If two old
+accounts differ only by case, login returns the usual invalid-credentials
+response rather than choosing one; those accounts need deliberate cleanup. Tests
+bypass the ORM validator to reproduce old stored values and check uppercase and
+padded login input.
+
 The current login contract still includes `organization_id` because emails are
 unique per organization in the existing database. On this branch the sign-in
 screen still signs in with a fixture; the separate sign-in wiring branch
@@ -161,6 +169,15 @@ inventory service called during one request therefore share one transaction.
 Services flush when needed but leave commit and rollback to
 `get_tenant_session`. The transaction tests check both success and a failure
 after a write has already flushed.
+
+The router mount installs `get_tenant_session` with a function scope. A route
+that requests the same dependency with the default request scope creates a
+second finalizer on the same session, which showed up as one commit before the
+response and another after it. Every tenant route therefore declares
+`Depends(get_tenant_session, scope="function")`, and an architecture test
+rejects a tenant route with any other scope. The transaction tests check exactly
+one commit before the response starts, a 500 when commit fails, and rollback of
+flushed writes. FastAPI 0.121.2 is the minimum because it supports these scopes.
 
 Sales, inventory, procurement, and accounting expose separate reader protocols.
 Architecture tests prevent AI and Home from importing the writer contracts or
