@@ -1,4 +1,3 @@
-
 """Tenant-scoped database queries for inventory."""
 
 from uuid import UUID
@@ -39,6 +38,20 @@ async def get_product(
     )
 
     return await session.scalar(statement)
+
+
+async def list_categories(
+    session: AsyncSession,
+    organization_id: UUID,
+) -> list[ProductCategory]:
+    statement = (
+        select(ProductCategory)
+        .where(ProductCategory.organization_id == organization_id)
+        .order_by(ProductCategory.name, ProductCategory.category_id)
+    )
+
+    result = await session.scalars(statement)
+    return list(result.all())
 
 
 async def get_category(

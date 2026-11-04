@@ -1,4 +1,3 @@
-
 """Tenant-protected product API endpoints."""
 
 from typing import Annotated
@@ -9,10 +8,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.inventory import service
 from app.addons.inventory.permissions import CREATE_PRODUCTS, READ_PRODUCTS
-from app.addons.inventory.schemas import ProductCreateRequest, ProductResponse
+from app.addons.inventory.schemas import CategoryResponse, ProductCreateRequest, ProductResponse
 from app.core.tenancy import TenantContext, get_tenant_session
 
 router = APIRouter()
+
+
+@router.get("/categories", response_model=list[CategoryResponse])
+async def list_categories_route(
+    ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
+    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+) -> list[CategoryResponse]:
+    """List product categories belonging to the authenticated organization."""
+
+    categories = await service.list_categories(
+        session=session,
+        organization_id=ctx.organization_id,
+    )
+
+    return [CategoryResponse.model_validate(category) for category in categories]
 
 
 @router.get("/products", response_model=list[ProductResponse])

@@ -16,7 +16,8 @@ async def test_user_listing_is_scoped_even_on_an_unbound_session(sessions, tenan
     first, second = tenants
     async with sessions() as session:
         rows = await repository.list_users(session, organization_id=first.organization_id)
-        assert {user.user_id for user, _ in rows} == set(first.users.values())
+        assert {user.user_id for user, _, _ in rows} == set(first.users.values())
+        assert {name for _, _, name in rows} == {"Acme"}
         people = await service.list_people(session, context(first))
         assert {person.user_id for person in people} == set(first.users.values())
         assert all(person.organization_id == first.organization_id for person in people)

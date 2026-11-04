@@ -6,6 +6,7 @@ import { Figure } from '@/core/components/ui/Figure'
 import { Meter } from '@/core/components/ui/Meter'
 import { PageHeader } from '@/core/components/ui/PageHeader'
 import { SectionNav } from '@/core/components/ui/SectionNav'
+import { Select } from '@/core/components/ui/Select'
 import { StatusPill } from '@/core/components/ui/StatusPill'
 import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Table'
 import { ApiError } from '@/core/lib/api'
@@ -52,6 +53,13 @@ export function JournalScreen() {
   const [posting, setPosting] = useState(false)
   const accounts = useAccounts()
   const recent = useRecentEntries()
+  const accountOptions = [
+    { value: '', label: 'Choose an account' },
+    ...accounts.items.map((a) => ({
+      value: a.account_id,
+      label: `${a.account_code} · ${a.account_name}`,
+    })),
+  ]
 
   const debitCents = lines.reduce((total, line) => total + toCents(line.debit), 0)
   const creditCents = lines.reduce((total, line) => total + toCents(line.credit), 0)
@@ -145,19 +153,16 @@ export function JournalScreen() {
             {lines.map((line, i) => (
               <Tr key={line.id}>
                 <Td className="pl-3">
-                  <select
-                    aria-label={`Account, line ${i + 1}`}
-                    value={line.accountId}
-                    onChange={(event) => update(line.id, { accountId: event.target.value })}
-                    className="h-9 rounded-control border border-line-strong bg-surface px-3 text-base"
-                  >
-                    <option value="">Choose an account</option>
-                    {accounts.items.map((a) => (
-                      <option key={a.account_id} value={a.account_id}>
-                        {a.account_code} · {a.account_name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="max-w-sm">
+                    <Select
+                      label={`Account, line ${i + 1}`}
+                      labelHidden
+                      size="sm"
+                      value={line.accountId}
+                      onChange={(event) => update(line.id, { accountId: event.target.value })}
+                      options={accountOptions}
+                    />
+                  </div>
                   {problems[line.id] && (
                     <p className="mt-1 text-xs text-negative">{PROBLEMS[problems[line.id]]}</p>
                   )}

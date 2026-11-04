@@ -33,6 +33,7 @@ async def test_login_token_can_access_current_user(client, tenants):
     assert me.status_code == 200
     assert me.json() == {
         "organization_id": str(first.organization_id),
+        "organization_name": "Acme",
         "user_id": str(first.users[Role.OWNER]),
         "role": "owner",
         "email": first.owner_email,
@@ -199,6 +200,7 @@ async def test_user_list_carries_what_the_people_screen_shows(client, sessions, 
     assert by_id[str(first.users[Role.OWNER])] == {
         "user_id": str(first.users[Role.OWNER]),
         "organization_id": str(first.organization_id),
+        "organization_name": "Acme",
         "role": "owner",
         "email": first.owner_email,
         "full_name": "Acme owner",

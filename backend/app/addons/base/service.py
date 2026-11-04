@@ -51,10 +51,11 @@ async def _verify(password: str, stored_hash: str | None) -> bool:
     return await asyncio.to_thread(_verify_in_thread, password, stored_hash)
 
 
-def _response(user: User, role: Role) -> CurrentUserResponse:
+def _response(user: User, role: Role, organization_name: str) -> CurrentUserResponse:
     return CurrentUserResponse(
         user_id=user.user_id,
         organization_id=user.organization_id,
+        organization_name=organization_name,
         role=role,
         email=user.email,
         full_name=user.full_name,
@@ -62,8 +63,8 @@ def _response(user: User, role: Role) -> CurrentUserResponse:
     )
 
 
-def _with_known_roles(rows: Iterable[tuple[User, str]]) -> Iterator[tuple[User, Role]]:
-    for user, role_name in rows:
+def _with_known_roles(rows: Iterable[repository.UserRow]) -> Iterator[tuple[User, Role, str]]:
+    for user, role_name, organization_name in rows:
         role = _role(role_name)
         if role is None:
             logger.warning(
@@ -72,14 +73,14 @@ def _with_known_roles(rows: Iterable[tuple[User, str]]) -> Iterator[tuple[User, 
                 role_name,
             )
             continue
-        yield user, role
+        yield user, role, organization_name
 
 
 async def login(payload: LoginRequest, session: AsyncSession) -> TokenResponse:
     match = await repository.find_user_for_login(
         session, organization_id=payload.organization_id, email=payload.email
     )
-    user, role_name = match if match is not None else (None, "")
+    user, role_name, _ = match if match is not None else (None, "", "")
     usable = user is not None and user.is_active
     stored_hash = user.password_hash if usable else None
     verified = await _verify(payload.password.get_secret_value(), stored_hash)
@@ -99,7 +100,7 @@ async def check_identity(session: AsyncSession, claims: TokenClaims) -> None:
     )
     if match is None:
         raise Unauthorized(INVALID_CREDENTIALS)
-    user, role_name = match
+    user, role_name, _ = match
     if not user.is_active or _own_role(role_name) != claims.role:
         raise Unauthorized(INVALID_CREDENTIALS)
     session.info[IDENTITY_KEY] = match
@@ -113,8 +114,8 @@ async def current_user(session: AsyncSession, ctx: TenantContext) -> CurrentUser
         )
     if match is None:
         raise Unauthorized(INVALID_CREDENTIALS)
-    user, role_name = match
-    return _response(user, _own_role(role_name))
+    user, role_name, organization_name = match
+    return _response(user, _own_role(role_name), organization_name)
 
 
 class IdentityService:
@@ -131,10 +132,10 @@ class IdentityService:
             user.user_id: UserSummary(
                 user.user_id, user.full_name, user.email, role, user.is_active
             )
-            for user, role in _with_known_roles(rows)
+            for user, role, _ in _with_known_roles(rows)
         }
 
 
 async def list_people(session: AsyncSession, ctx: TenantContext) -> list[CurrentUserResponse]:
     rows = await repository.list_users(session, organization_id=ctx.organization_id)
-    return [_response(user, role) for user, role in _with_known_roles(rows)]
+    return [_response(user, role, name) for user, role, name in _with_known_roles(rows)]

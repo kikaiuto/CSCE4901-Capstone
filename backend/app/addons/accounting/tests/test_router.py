@@ -108,7 +108,16 @@ async def test_wrong_role_is_forbidden(client, tenants, sessions):
             await client.post(URL, json=entry(acme), headers=acme.headers(role))
         ).status_code == 403
         assert (await client.get(URL, headers=acme.headers(role))).status_code == 403
+    for role in (Role.SALES, Role.PURCHASING):
         assert (
             await client.get("/api/accounting/accounts", headers=acme.headers(role))
         ).status_code == 403
     assert await row_counts(sessions) == (0, 0)
+
+
+async def test_inventory_can_read_the_chart_of_accounts_but_not_the_journal(client, tenants):
+    acme, _ = tenants
+    accounts = await client.get("/api/accounting/accounts", headers=acme.headers(Role.INVENTORY))
+    assert accounts.status_code == 200
+    assert [a["account_code"] for a in accounts.json()] == ["1200", "4000"]
+    assert (await client.get(URL, headers=acme.headers(Role.INVENTORY))).status_code == 403

@@ -7,7 +7,11 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.accounting import service
-from app.addons.accounting.permissions import POST_JOURNAL_ENTRY, READ_ACCOUNTING
+from app.addons.accounting.permissions import (
+    POST_JOURNAL_ENTRY,
+    READ_ACCOUNTING,
+    READ_CHART_OF_ACCOUNTS,
+)
 from app.addons.accounting.schemas import (
     AccountResponse,
     JournalEntryIn,
@@ -23,7 +27,7 @@ router = APIRouter()
 
 @router.get("/accounts", response_model=list[AccountResponse])
 async def list_accounts_route(
-    ctx: Annotated[TenantContext, Depends(READ_ACCOUNTING)],
+    ctx: Annotated[TenantContext, Depends(READ_CHART_OF_ACCOUNTS)],
     session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
 ) -> list[AccountResponse]:
     accounts = await service.list_accounts(session, ctx.organization_id)

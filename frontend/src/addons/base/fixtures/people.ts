@@ -1,24 +1,7 @@
+import type { CurrentUserResponse } from '@/core/app/session'
 import { ROLES, type Role } from './org'
 
-export type PersonStatus = 'active' | 'invited'
 export type AccessLevel = 'full' | 'view' | 'none'
-
-export interface Person {
-  id: string
-  name: string
-  email: string
-  role: Role
-  status: PersonStatus
-}
-
-export const people: Person[] = [
-  { id: 'usr_dana', name: 'Dana Owens', email: 'dana@acmesupply.com', role: 'Owner', status: 'active' },
-  { id: 'usr_mo', name: 'Mo Ferrara', email: 'mo@acmesupply.com', role: 'Admin', status: 'active' },
-  { id: 'usr_pri', name: 'Priya Raman', email: 'priya@acmesupply.com', role: 'Sales', status: 'active' },
-  { id: 'usr_lee', name: 'Lee Carter', email: 'lee@acmesupply.com', role: 'Inventory', status: 'active' },
-  { id: 'usr_sam', name: 'Sam Oyelaran', email: 'sam@acmesupply.com', role: 'Purchasing', status: 'invited' },
-  { id: 'usr_ted', name: 'Ted Brill', email: 'ted@acmesupply.com', role: 'Accounting', status: 'active' },
-]
 
 export const accessAreas = ['Sales', 'Inventory', 'Procurement', 'Accounting', 'Admin'] as const
 
@@ -35,8 +18,13 @@ export const accessMatrix: Record<Role, Record<AccessArea, AccessLevel>> = {
 
 export const roleOrder = ROLES
 
-export const peopleTotals = {
-  count: people.length,
-  active: people.filter((person) => person.status === 'active').length,
-  invited: people.filter((person) => person.status === 'invited').length,
-}
+const organization = { organization_id: 'org-northstar', organization_name: 'Northstar Electronics Demo' }
+
+export const demoUsers: CurrentUserResponse[] = [
+  { ...organization, user_id: 'usr_dana', role: 'owner', email: 'owner@northstar.demo', full_name: 'Dana Owens', is_active: true },
+  { ...organization, user_id: 'usr_mo', role: 'admin', email: 'admin@northstar.demo', full_name: 'Mo Ferrara', is_active: true },
+  { ...organization, user_id: 'usr_pri', role: 'sales', email: 'sales@northstar.demo', full_name: 'Priya Raman', is_active: true },
+  { ...organization, user_id: 'usr_lee', role: 'inventory', email: 'inventory@northstar.demo', full_name: 'Lee Carter', is_active: true },
+  { ...organization, user_id: 'usr_sam', role: 'purchasing', email: 'purchasing@northstar.demo', full_name: 'Sam Oyelaran', is_active: false },
+  { ...organization, user_id: 'usr_ted', role: 'accounting', email: 'accounting@northstar.demo', full_name: 'Ted Brill', is_active: true },
+]
