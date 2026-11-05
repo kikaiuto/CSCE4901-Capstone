@@ -10,7 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.addons.inventory import service
 from app.addons.inventory.permissions import CREATE_PRODUCTS, READ_PRODUCTS
 from app.addons.inventory.schemas import ProductCreateRequest, ProductResponse
+from app.core.contracts import bind
+from app.core.contracts.inventory import InventoryContract
 from app.core.tenancy import TenantContext, get_tenant_session
+
+bind(InventoryContract, service.InventoryService)
 
 router = APIRouter()
 
