@@ -14,7 +14,7 @@ from app.core.seeding import demo_tenants, seed_demo
 
 NORTHSTAR = uuid.UUID("6fd03a14-80fd-5476-a84e-ae0c2c0c6e4d")
 CEDAR = uuid.UUID("d3d1a2ca-f45e-5da5-8ef8-3486edc3fe4a")
-EXPECTED = {"base": 14, "accounting": 16, "inventory": 28, "procurement": 6, "sales": 20}
+EXPECTED = {"base": 14, "accounting": 20, "inventory": 28, "procurement": 6, "sales": 20}
 
 
 async def test_demo_tenant_ids_are_pinned():
@@ -34,7 +34,7 @@ async def test_seed_fills_both_tenants_once(sessions):
         for model, expected in (
             (Organization, 2),
             (Role, 12),
-            (ChartOfAccounts, 16),
+            (ChartOfAccounts, 20),
             (Product, 24),
             (Supplier, 6),
             (Customer, 20),
