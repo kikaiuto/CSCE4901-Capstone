@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.addons.inventory.health import StockStatus
+
 
 class ProductResponse(BaseModel):
     """Response schema for inventory products."""
@@ -47,3 +49,13 @@ class ProductCreateRequest(BaseModel):
     def strip_whitespace(cls, value: str) -> str:
         """Trim surrounding whitespace before field validation."""
         return value.strip() if isinstance(value, str) else value
+
+
+class InventoryHealthResponse(BaseModel):
+    """Response schema for a product's inventory health."""
+
+    product_id: UUID
+    quantity: int
+    safety_stock_threshold: int
+    status: StockStatus
+    suggested_restock_quantity: int
