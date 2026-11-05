@@ -44,6 +44,18 @@ class StockLevel:
 
 
 @dataclass(frozen=True, slots=True)
+class InventoryDashboardMetrics:
+    """Read-only inventory KPIs for the operational dashboard."""
+
+    total_products: int
+    on_hand_units: int
+    available_units: int
+    inventory_value: Decimal
+    low_stock_products: int
+    out_of_stock_products: int
+
+
+@dataclass(frozen=True, slots=True)
 class ReceivedLine:
     product_id: uuid.UUID
     quantity: int
@@ -138,6 +150,10 @@ class InventoryReader(Protocol):
         """The S-06 "avg cost before -> after" figure, without writing anything.
         ((on_hand * current_cost) + (received_qty * unit_cost)) / (on_hand +
         received_qty), quantized to NUMERIC(12, 4). Requirement: R17."""
+        ...
+
+    async def get_dashboard_metrics(self, ctx: TenantContext) -> InventoryDashboardMetrics:
+        """Return deterministic inventory dashboard metrics for this tenant."""
         ...
 
 
