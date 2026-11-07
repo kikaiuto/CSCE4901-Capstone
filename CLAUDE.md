@@ -84,14 +84,21 @@ business code in `frontend/src/addons/<name>/`, one directory per backend addon.
 
 | Path | Holds |
 | --- | --- |
-| `manifest.ts` | `name`, `depends`, `screens`, and an optional `nav` entry |
+| `manifest.ts` | `name`, `depends`, `screens`, `routes`, and an optional `nav` entry |
 | `screens/` | One component per wireframe screen |
 | `components/` | Pieces used by this addon's screens |
 | `fixtures/` | Stand-in data, shaped as the endpoint response it will become |
 | `hooks/` | This addon's hooks |
 
-`depends` and `screens` mirror `__manifest__.py`. The `nav` entry is frontend-only:
-addons without a rail destination, such as `ai` and `forecasting`, omit it.
+`depends` and `screens` mirror `__manifest__.py`, and `src/core/app/manifestsAgree.test.ts`
+fails when they drift. `routes` and `nav` are frontend-only: `routes` lists the addon's
+screens with their path, crumb, view, and a lazy `load`, and core builds the router from
+them in `src/core/app/router.tsx`. Nothing outside core may hand-write a route table.
+Addons without a rail destination, such as `ai` and `forecasting`, omit `nav`.
+
+Screens read and write through core: `useList`, `useRecord`, and `useMutation` in
+`src/core/app/data.ts` are the only way to call the API from a screen, and `notify` in
+`src/core/app/notify.ts` is the only way to show a toast. A screen never calls `fetch`.
 
 **An addon may import from `@/core` and from the addons in its own `depends`,
 nothing else.** `src/core/app/addonDeps.test.ts` enforces this and also rejects
@@ -115,5 +122,6 @@ dual-axis chart and Recharts makes one a two-line change.
 Controls that would write data render visibly inert rather than looking live: pass
 the `unwired` prop and the control gets a dashed border, a leading ✕, and a "Not
 wired up yet" tooltip, and its click handler is dropped. Remove the prop when the
-endpoint behind the control exists; `src/core/app/unwired.test.tsx` checks every
-screen, so wiring one up without removing it fails rather than passing quietly.
+endpoint behind the control exists and add the control's label to its route's
+`writes` list in the manifest; `src/core/app/unwired.test.tsx` walks every route, so
+a live control that is not declared, or a declared one that is not live, fails.

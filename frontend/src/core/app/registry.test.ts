@@ -1,21 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { router } from '@/routes'
-import { addons, moduleFor, navItems, operationLabels, railItems } from './registry'
+import { addons, allRoutes, moduleFor, navItems, operationLabels, railItems } from './registry'
 import type { NavEntry } from './manifest'
-
-function routePaths(): string[] {
-  const paths: string[] = []
-
-  function walk(routes: { path?: string; children?: unknown[] }[]) {
-    for (const route of routes) {
-      if (route.path) paths.push(route.path)
-      if (route.children) walk(route.children as { path?: string; children?: unknown[] }[])
-    }
-  }
-
-  walk(router.routes as { path?: string; children?: unknown[] }[])
-  return paths
-}
 
 describe('registry', () => {
   it('names every addon once', () => {
@@ -29,13 +14,19 @@ describe('registry', () => {
   })
 
   it('gives every nav destination a route', () => {
-    const paths = routePaths()
+    const paths = allRoutes().map((route) => route.path)
     const nav = addons
       .map((addon) => addon.nav)
       .filter((entry): entry is NavEntry => entry !== undefined)
 
     for (const entry of nav) {
       expect(paths, `no route for ${entry.to}`).toContain(entry.to)
+    }
+  })
+
+  it('tags every route with the addon that contributed it', () => {
+    for (const route of allRoutes()) {
+      expect(addons.map((addon) => addon.name)).toContain(route.owner)
     }
   })
 

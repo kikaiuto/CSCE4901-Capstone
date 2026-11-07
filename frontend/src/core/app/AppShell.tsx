@@ -4,6 +4,7 @@ import { CommandBar } from '@/addons/ai/components/CommandBar'
 import { ModuleBar } from './ModuleBar'
 import { ModuleRail } from './ModuleRail'
 import { useSession } from './session'
+import { Toasts } from './Toasts'
 import { PageActionsContext } from './usePageActions'
 import { RecordPagerContext, type RecordPage } from './useRecordPager'
 
@@ -61,6 +62,7 @@ export function AppShell() {
       </div>
 
       <CommandBar open={commandBarOpen} onClose={close} />
+      <Toasts />
     </div>
   )
 }

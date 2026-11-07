@@ -4,4 +4,5 @@ export const manifest: AddonManifest = {
   name: 'ai',
   depends: ['base'],
   screens: ['S-08'],
+  routes: [],
 }
