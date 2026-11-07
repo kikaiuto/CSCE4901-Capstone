@@ -52,7 +52,12 @@ export function ProductScreen() {
   }, [range, overlay])
 
   if (!product) {
-    return <EmptyState title="No such product" detail={`Nothing in the catalog matches ${sku}.`} />
+    return (
+      <EmptyState
+        title="This record is not wired to the catalog yet"
+        detail={`The stock ledger behind this screen still comes from sample data, and nothing in it matches ${sku}.`}
+      />
+    )
   }
 
   const belowSafety = Number(product.onHand) < Number(product.safetyStock)

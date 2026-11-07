@@ -8,6 +8,7 @@ export type Status =
   | 'submitted'
   | 'received'
   | 'active'
+  | 'inactive'
   | 'invited'
   | 'auto'
   | 'manual'
@@ -26,6 +27,7 @@ const TONES: Record<Status, string> = {
   submitted: 'border-pending/55 text-pending',
   received: 'border-positive/55 text-positive',
   active: 'border-positive/55 text-positive',
+  inactive: 'border-line-strong text-ink-faint',
   invited: 'border-pending/55 text-pending',
   auto: 'border-accent-line text-accent',
   manual: 'border-line-strong text-ink-muted',

@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { Button } from '@/core/components/ui/Button'
+import { EmptyState } from '@/core/components/ui/EmptyState'
 import { SelectShell } from '@/core/components/ui/Field'
 import { PageHeader } from '@/core/components/ui/PageHeader'
 import { StatusPill } from '@/core/components/ui/StatusPill'
@@ -6,14 +8,8 @@ import { ColumnHeaders, Table, TBody, Td, Th, Tr } from '@/core/components/ui/Ta
 import { cn } from '@/core/lib/cn'
 import { countOf } from '@/core/lib/text'
 import { useFirstVisit } from '@/core/lib/useFirstVisit'
-import {
-  accessAreas,
-  accessMatrix,
-  people,
-  peopleTotals,
-  roleOrder,
-  type AccessLevel,
-} from '../fixtures/people'
+import { accessAreas, accessMatrix, roleOrder, type AccessLevel } from '../fixtures/people'
+import { byRoleThenName, toPerson, usePeople } from '../hooks/usePeople'
 
 const MARK: Record<AccessLevel, string> = { full: '●', view: '◐', none: '○' }
 const MARK_LABEL: Record<AccessLevel, string> = {
@@ -72,15 +68,21 @@ function AccessMatrix() {
 
 export function PeopleScreen() {
   const fresh = useFirstVisit('admin/people')
+  const users = usePeople()
+  const people = useMemo(() => users.items.map(toPerson).sort(byRoleThenName), [users.items])
+  const inactive = people.filter((person) => person.status === 'inactive').length
 
   return (
     <div className={cn(fresh && 'rise', 'mx-auto max-w-6xl pb-16')}>
       <PageHeader
         title="People and roles"
         meta={
-          <p className="text-base text-ink-muted">
-            {countOf(peopleTotals.count, 'person')} · {peopleTotals.invited} invited
-          </p>
+          !users.loading && (
+            <p className="text-base text-ink-muted">
+              {countOf(people.length, 'person', 'people')}
+              {inactive > 0 && ` · ${inactive} inactive`}
+            </p>
+          )
         }
         actions={
           <Button variant="primary" unwired>
@@ -89,55 +91,63 @@ export function PeopleScreen() {
         }
       />
 
-      <div className="mt-7 grid grid-cols-1 gap-7 lg:grid-cols-[1.6fr_1fr]">
-        <Table>
-          <ColumnHeaders>
-            <Th className="pl-3">Name</Th>
-            <Th>Email</Th>
-            <Th className="w-40">Role</Th>
-            <Th className="w-28">Status</Th>
-            <Th className="w-36" align="right">
-              Actions
-            </Th>
-          </ColumnHeaders>
+      {users.error && (
+        <p role="alert" className="mt-4 text-base text-negative">
+          {users.error}
+        </p>
+      )}
 
-          <TBody>
-            {people.map((person) => (
-              <Tr key={person.id}>
-                <Td className="pl-3">{person.name}</Td>
-                <Td className="text-ink-muted">{person.email}</Td>
-                <Td>
-                  <SelectShell value={person.role} unwired />
-                </Td>
-                <Td>
-                  <StatusPill status={person.status} />
-                </Td>
-                <Td align="right">
-                  <div className="flex justify-end gap-3">
-                    {person.status === 'invited' && (
+      <div className="mt-7 grid grid-cols-1 gap-7 lg:grid-cols-[1.6fr_1fr]">
+        <div>
+          {users.loading && (
+            <p role="status" className="py-4 text-base text-ink-muted">
+              Loading people…
+            </p>
+          )}
+
+          {!users.loading && !users.error && people.length === 0 && (
+            <EmptyState title="Nobody here yet" detail="Invite the first person to this workspace." />
+          )}
+
+          {!users.loading && people.length > 0 && (
+            <Table>
+              <ColumnHeaders>
+                <Th className="pl-3">Name</Th>
+                <Th>Email</Th>
+                <Th className="w-40">Role</Th>
+                <Th className="w-28">Status</Th>
+                <Th className="w-36" align="right">
+                  Actions
+                </Th>
+              </ColumnHeaders>
+
+              <TBody>
+                {people.map((person) => (
+                  <Tr key={person.id}>
+                    <Td className="pl-3 whitespace-nowrap">{person.name}</Td>
+                    <Td className="text-ink-muted">{person.email}</Td>
+                    <Td>
+                      <SelectShell value={person.role ?? 'Unknown'} unwired />
+                    </Td>
+                    <Td>
+                      <StatusPill status={person.status} />
+                    </Td>
+                    <Td align="right">
                       <button
                         type="button"
                         aria-disabled="true"
                         title="Not wired up yet"
-                        className="text-base text-accent"
+                        className="text-base text-negative"
                       >
-                        Resend
+                        Remove
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      aria-disabled="true"
-                      title="Not wired up yet"
-                      className="text-base text-negative"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </Td>
-              </Tr>
-            ))}
-          </TBody>
-        </Table>
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </div>
 
         <AccessMatrix />
       </div>

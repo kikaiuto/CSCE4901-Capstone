@@ -25,3 +25,14 @@ async def test_product_endpoints_hide_other_tenants(client, tenants):
     absent = await client.get(f"/api/inventory/products/{uuid.uuid4()}", headers=first.headers())
     assert hidden.status_code == absent.status_code == 404
     assert hidden.json() == absent.json()
+
+
+async def test_category_list_hides_other_tenants(client, tenants):
+    first, second = tenants
+    response = await client.get(
+        "/api/inventory/categories",
+        headers=first.headers(),
+        params={"organization_id": str(second.organization_id)},
+    )
+    assert response.status_code == 200
+    assert [row["category_id"] for row in response.json()] == [str(first.category_id)]

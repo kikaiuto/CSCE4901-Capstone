@@ -70,6 +70,38 @@ describe('useList', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
   })
 
+  it('clears a previous error while reloading', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ error: 'forbidden', message: 'Not for you', details: {} }, 403),
+      )
+      .mockImplementationOnce(() => new Promise(() => {}))
+
+    const { result } = renderHook(() => useList('/api/things'))
+    await waitFor(() => expect(result.current.error).toBe('Not for you'))
+
+    act(() => result.current.reload())
+
+    await waitFor(() => expect(result.current.loading).toBe(true))
+    expect(result.current.error).toBeNull()
+  })
+
+  it('drops the old list when the path changes', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse([{ id: 1 }]))
+      .mockImplementationOnce(() => new Promise(() => {}))
+
+    const { result, rerender } = renderHook(({ path }) => useList<{ id: number }>(path), {
+      initialProps: { path: '/api/one' },
+    })
+    await waitFor(() => expect(result.current.items).toEqual([{ id: 1 }]))
+
+    rerender({ path: '/api/two' })
+
+    await waitFor(() => expect(result.current.loading).toBe(true))
+    expect(result.current.items).toEqual([])
+  })
+
   it('stays idle with a null path', () => {
     const { result } = renderHook(() => useList(null))
 

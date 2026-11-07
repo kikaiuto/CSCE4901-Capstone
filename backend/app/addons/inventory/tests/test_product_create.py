@@ -51,6 +51,8 @@ async def test_authorized_roles_can_create_product(client, tenants, role):
     assert data["sku"] == payload["sku"]
     assert data["category_id"] == payload["category_id"]
     assert data["safety_stock_threshold"] == 10
+    assert data["unit_cost"] == "12.5000"
+    assert data["average_cost"] == "12.5000"
     assert uuid.UUID(data["product_id"])
 
 

@@ -11,7 +11,16 @@ export const manifest: AddonManifest = {
       path: '/inventory/products',
       crumb: 'Products',
       view: 'list',
+      writes: ['New product'],
       load: () => import('./screens/ProductsScreen').then((m) => m.ProductsScreen),
+    },
+    {
+      id: 'inventory.product-new',
+      path: '/inventory/products/new',
+      crumb: 'New product',
+      view: 'record',
+      writes: ['Create product', 'Cancel'],
+      load: () => import('./screens/ProductNewScreen').then((m) => m.ProductNewScreen),
     },
     {
       id: 'inventory.product',

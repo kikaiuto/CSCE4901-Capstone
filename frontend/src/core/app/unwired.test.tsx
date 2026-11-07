@@ -10,7 +10,12 @@ const WRITES =
 const fetchMock = mockFetch()
 
 function labelOf(button: HTMLElement): string {
-  return button.textContent?.replace(/^✕/, '').trim() ?? ''
+  return Array.from(button.childNodes)
+    .filter((node) => !(node instanceof HTMLElement && node.tagName === 'KBD'))
+    .map((node) => node.textContent ?? '')
+    .join('')
+    .replace(/^✕/, '')
+    .trim()
 }
 
 describe('the unwired convention', () => {

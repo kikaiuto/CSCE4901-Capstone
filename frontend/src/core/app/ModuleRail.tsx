@@ -4,6 +4,7 @@ import { Avatar } from '@/core/components/ui/Avatar'
 import { Icon } from '@/core/components/ui/Icon'
 import { moduleFor, navItems, railItems, type NavItem } from './registry'
 import { useSignedIn } from './session'
+import { UserMenu } from './UserMenu'
 
 const ITEM_HEIGHT = 56
 
@@ -36,7 +37,7 @@ export interface ModuleRailProps {
 
 export function ModuleRail({ labels = true }: ModuleRailProps) {
   const { pathname } = useLocation()
-  const { user, organization } = useSignedIn()
+  const { organization } = useSignedIn()
   const active = moduleFor(pathname)
   const activeIndex = railItems().findIndex((addon) => addon.name === active?.name)
   const [admin] = navItems('admin')
@@ -84,15 +85,7 @@ export function ModuleRail({ labels = true }: ModuleRailProps) {
           </nav>
         )}
 
-        <button
-          type="button"
-          aria-disabled="true"
-          aria-label={user.name}
-          title="Not wired up yet"
-          className="rounded-full p-1"
-        >
-          <Avatar name={user.name} />
-        </button>
+        <UserMenu />
       </div>
     </aside>
   )

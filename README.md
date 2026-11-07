@@ -84,11 +84,20 @@ without a rebuild. `make logs` tails everything, `make down` stops it, and
 `make clean` also drops the database volume. `make test` and `make lint` run
 both suites inside the containers.
 
-The sign-in screen still goes straight through: submitting it signs in the demo
-user from the base addon's fixtures. Backend login is available at
-`POST /api/base/auth/login` and takes an organization UUID, email, and password.
-The session store and API client in `frontend/src/core` are wired, so connecting
-the screen to that endpoint is a change to the sign-in screen alone.
+Sign-in is real. Seed the demo data once the stack is up, then pick a workspace on
+the sign-in screen and use one of the seeded accounts:
+
+```
+docker compose run --rm backend uv run python -m scripts.seed
+```
+
+Every demo user shares the password `sector7-demo`. The emails are
+`owner@northstar.demo`, `admin@northstar.demo`, `sales@`, `inventory@`,
+`purchasing@`, and `accounting@` for the Northstar workspace, and the same six
+under `@cedar.demo`. Login takes an organization UUID, so the screen lists the two
+seeded workspaces; a public organization list would let anyone enumerate tenants,
+which is why that stays a fixture until the backend resolves the organization
+server-side.
 Migrations run automatically on `make up`; `make revision m="add products"`
 generates a new one after changing models. The original database migration is
 preserved; the integration adds a follow-up migration for account status, tenant
