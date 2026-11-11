@@ -1,4 +1,3 @@
-
 """Business logic for inventory operations."""
 
 from collections import Counter
@@ -19,6 +18,7 @@ from app.core.contracts.common import DocumentRef
 from app.core.contracts.inventory import (
     AdjustmentLine,
     InsufficientStock,
+    InventoryDashboardMetrics,
     LedgerRow,
     ProductAccounts,
     ReceivedLine,
@@ -84,10 +84,7 @@ def _is_duplicate_sku_error(exc: IntegrityError) -> bool:
         if expected_constraint in str(original_error):
             return True
 
-        if (
-            cause is not None
-            and expected_constraint in str(cause)
-        ):
+        if cause is not None and expected_constraint in str(cause):
             return True
 
         # Do not classify unrelated PostgreSQL constraints
@@ -172,11 +169,7 @@ async def create_product(
         account_id=payload.asset_account_id,
     )
 
-    if (
-        asset_account is None
-        or str(asset_account.account_type).lower()
-        != AccountType.ASSET.value
-    ):
+    if asset_account is None or str(asset_account.account_type).lower() != AccountType.ASSET.value:
         raise AppError("Invalid inventory asset account")
 
     # Validate the sales revenue account.
@@ -188,8 +181,7 @@ async def create_product(
 
     if (
         revenue_account is None
-        or str(revenue_account.account_type).lower()
-        != AccountType.REVENUE.value
+        or str(revenue_account.account_type).lower() != AccountType.REVENUE.value
     ):
         raise AppError("Invalid sales revenue account")
 
@@ -199,9 +191,7 @@ async def create_product(
         organization_id=organization_id,
         sku=payload.sku,
     ):
-        raise Conflict(
-            "A product with this SKU already exists"
-        )
+        raise Conflict("A product with this SKU already exists")
 
     # Construct the new product.
     product = Product(
@@ -229,9 +219,7 @@ async def create_product(
     except IntegrityError as exc:
         # Convert only duplicate-SKU violations into HTTP 409.
         if _is_duplicate_sku_error(exc):
-            raise Conflict(
-                "A product with this SKU already exists"
-            ) from exc
+            raise Conflict("A product with this SKU already exists") from exc
 
         # Preserve unrelated database integrity errors.
         raise
@@ -285,9 +273,7 @@ class InventoryService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def _lock(
-        self, ctx: TenantContext, product_ids: Collection[UUID]
-    ) -> dict[UUID, Product]:
+    async def _lock(self, ctx: TenantContext, product_ids: Collection[UUID]) -> dict[UUID, Product]:
         products = await repository.get_products(
             self.session, ctx.organization_id, product_ids, lock=True
         )
@@ -368,6 +354,41 @@ class InventoryService:
             )
             for product_id, product in products.items()
         }
+
+    async def get_dashboard_metrics(self, ctx: TenantContext) -> InventoryDashboardMetrics:
+        """Return deterministic inventory KPIs for the authenticated organization."""
+
+        rows = await repository.inventory_dashboard_rows(
+            self.session,
+            ctx.organization_id,
+        )
+
+        on_hand_units = 0
+        available_units = 0
+        inventory_value = Decimal("0.0000")
+        low_stock_products = 0
+        out_of_stock_products = 0
+
+        for threshold, average_cost, on_hand, committed in rows:
+            available = on_hand - committed
+
+            on_hand_units += on_hand
+            available_units += available
+            inventory_value += Decimal(on_hand) * average_cost
+
+            if available <= 0:
+                out_of_stock_products += 1
+            elif available < threshold:
+                low_stock_products += 1
+
+        return InventoryDashboardMetrics(
+            total_products=len(rows),
+            on_hand_units=on_hand_units,
+            available_units=available_units,
+            inventory_value=inventory_value,
+            low_stock_products=low_stock_products,
+            out_of_stock_products=out_of_stock_products,
+        )
 
     async def get_ledger(
         self, ctx: TenantContext, product_id: UUID, limit: int = 50

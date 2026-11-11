@@ -1,7 +1,7 @@
-
 """Tenant-scoped database queries for inventory."""
 
 from collections.abc import Collection
+from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -102,8 +102,11 @@ async def get_products(
     product_ids: Collection[UUID],
     lock: bool = False,
 ) -> dict[UUID, Product]:
-    """Products by id. lock=True takes SELECT ... FOR UPDATE in product_id order, so
-    two writers touching overlapping products always queue rather than deadlock."""
+    """Retrieve products by ID.
+
+    lock=True uses SELECT ... FOR UPDATE in product ID order,
+    allowing concurrent writers to queue instead of deadlocking.
+    """
 
     statement = (
         select(Product)
@@ -113,8 +116,9 @@ async def get_products(
         )
         .order_by(Product.product_id)
     )
+
     if lock:
-        # populate_existing: a locked read must not hand back a stale identity-map row.
+        # A locked read must not return a stale identity-map row.
         statement = statement.with_for_update().execution_options(populate_existing=True)
 
     result = await session.scalars(statement)
@@ -127,7 +131,10 @@ async def on_hand_by_product(
     product_ids: Collection[UUID],
 ) -> dict[UUID, int]:
     statement = (
-        select(InventoryLedger.product_id, func.sum(InventoryLedger.change_quantity))
+        select(
+            InventoryLedger.product_id,
+            func.sum(InventoryLedger.change_quantity),
+        )
         .where(
             InventoryLedger.organization_id == organization_id,
             InventoryLedger.product_id.in_(list(product_ids)),
@@ -145,7 +152,10 @@ async def committed_by_product(
     product_ids: Collection[UUID],
 ) -> dict[UUID, int]:
     statement = (
-        select(StockReservation.product_id, func.sum(StockReservation.change_quantity))
+        select(
+            StockReservation.product_id,
+            func.sum(StockReservation.change_quantity),
+        )
         .where(
             StockReservation.organization_id == organization_id,
             StockReservation.product_id.in_(list(product_ids)),
@@ -163,11 +173,16 @@ async def reserved_for_document(
     document_kind: str,
     document_id: UUID,
 ) -> dict[UUID, int] | None:
-    """The document's outstanding reservation per product, or None if it never
-    reserved anything."""
+    """Return outstanding reservations for a document.
+
+    Returns None if the document never reserved any inventory.
+    """
 
     statement = (
-        select(StockReservation.product_id, func.sum(StockReservation.change_quantity))
+        select(
+            StockReservation.product_id,
+            func.sum(StockReservation.change_quantity),
+        )
         .where(
             StockReservation.organization_id == organization_id,
             StockReservation.document_kind == document_kind,
@@ -178,8 +193,10 @@ async def reserved_for_document(
     )
 
     rows = (await session.execute(statement)).all()
+
     if not rows:
         return None
+
     return {product_id: int(total) for product_id, total in rows}
 
 
@@ -195,7 +212,10 @@ async def list_ledger(
             InventoryLedger.organization_id == organization_id,
             InventoryLedger.product_id == product_id,
         )
-        .order_by(InventoryLedger.created_at.desc(), InventoryLedger.ledger_id.desc())
+        .order_by(
+            InventoryLedger.created_at.desc(),
+            InventoryLedger.ledger_id.desc(),
+        )
         .limit(limit)
     )
 
@@ -207,7 +227,129 @@ async def append(
     session: AsyncSession,
     rows: Collection[InventoryLedger | StockReservation],
 ) -> None:
-    """The only write path for ledger and reservation rows: insert, never update."""
+    """Append inventory ledger or reservation rows.
+
+    Existing ledger and reservation records are never modified.
+    """
 
     session.add_all(rows)
     await session.flush()
+
+
+# --------------------------------------------------
+# ERP DASHBOARD - INVENTORY DATA AGGREGATION
+# --------------------------------------------------
+
+
+async def inventory_dashboard_rows(
+    session: AsyncSession,
+    organization_id: UUID,
+) -> list[tuple[int, Decimal, int, int]]:
+    """Retrieve tenant-scoped inventory data for dashboard calculations.
+
+    Each returned tuple contains:
+
+    1. Safety stock threshold.
+    2. Moving average cost.
+    3. On-hand quantity.
+    4. Committed quantity.
+
+    Stock quantities are calculated using grouped SQL queries.
+
+    Products without ledger or reservation records are included
+    with zero quantities.
+
+    This function performs read-only database operations.
+    """
+
+    # --------------------------------------------------
+    # 1. AGGREGATE ON-HAND STOCK
+    # --------------------------------------------------
+
+    on_hand = (
+        select(
+            InventoryLedger.product_id,
+            func.sum(InventoryLedger.change_quantity).label("quantity"),
+        )
+        .where(
+            InventoryLedger.organization_id == organization_id,
+        )
+        .group_by(
+            InventoryLedger.product_id,
+        )
+        .subquery()
+    )
+
+    # --------------------------------------------------
+    # 2. AGGREGATE COMMITTED STOCK
+    # --------------------------------------------------
+
+    committed = (
+        select(
+            StockReservation.product_id,
+            func.sum(StockReservation.change_quantity).label("quantity"),
+        )
+        .where(
+            StockReservation.organization_id == organization_id,
+        )
+        .group_by(
+            StockReservation.product_id,
+        )
+        .subquery()
+    )
+
+    # --------------------------------------------------
+    # 3. RETRIEVE PRODUCTS AND INVENTORY BALANCES
+    # --------------------------------------------------
+
+    statement = (
+        select(
+            Product.safety_stock_threshold,
+            Product.average_cost,
+            func.coalesce(
+                on_hand.c.quantity,
+                0,
+            ),
+            func.coalesce(
+                committed.c.quantity,
+                0,
+            ),
+        )
+        .select_from(Product)
+        .outerjoin(
+            on_hand,
+            on_hand.c.product_id == Product.product_id,
+        )
+        .outerjoin(
+            committed,
+            committed.c.product_id == Product.product_id,
+        )
+        .where(
+            Product.organization_id == organization_id,
+        )
+    )
+
+    # --------------------------------------------------
+    # 4. EXECUTE THE READ-ONLY QUERY
+    # --------------------------------------------------
+
+    result = await session.execute(statement)
+
+    # --------------------------------------------------
+    # 5. RETURN VALIDATED PYTHON VALUES
+    # --------------------------------------------------
+
+    return [
+        (
+            int(threshold),
+            Decimal(average_cost),
+            int(on_hand_quantity),
+            int(committed_quantity),
+        )
+        for (
+            threshold,
+            average_cost,
+            on_hand_quantity,
+            committed_quantity,
+        ) in result.all()
+    ]

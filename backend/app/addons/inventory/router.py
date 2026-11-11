@@ -15,7 +15,8 @@ from app.addons.inventory.schemas import (
     ProductResponse,
 )
 from app.core.contracts import bind
-from app.core.contracts.inventory import InventoryContract
+from app.core.contracts.inventory import InventoryContract, InventoryDashboardMetrics
+from app.core.registry import register_dashboard_metric
 from app.core.tenancy import TenantContext, get_tenant_session
 
 # Register the inventory service implementation.
@@ -24,14 +25,20 @@ bind(InventoryContract, service.InventoryService)
 router = APIRouter()
 
 
-# --------------------------------------------------
-# PRODUCT LIST
-# --------------------------------------------------
+async def _inventory_dashboard_metric(
+    session: AsyncSession,
+    ctx: TenantContext,
+) -> InventoryDashboardMetrics:
+    """Provide inventory KPIs to the operational dashboard."""
 
-@router.get(
-    "/products",
-    response_model=list[ProductResponse],
-)
+    return await service.InventoryService(session).get_dashboard_metrics(ctx)
+
+
+# Register the provider once when the Inventory addon loads.
+register_dashboard_metric("inventory", _inventory_dashboard_metric)
+
+
+@router.get("/products", response_model=list[ProductResponse])
 async def list_products_route(
     ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
     session: Annotated[
