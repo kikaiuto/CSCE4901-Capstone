@@ -1,5 +1,5 @@
 
-"""Tenant-protected product API endpoints."""
+"""Tenant-protected inventory product API endpoints."""
 
 from typing import Annotated
 from uuid import UUID
@@ -9,20 +9,35 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.inventory import service
 from app.addons.inventory.permissions import CREATE_PRODUCTS, READ_PRODUCTS
-from app.addons.inventory.schemas import ProductCreateRequest, ProductResponse
+from app.addons.inventory.schemas import (
+    InventoryHealthResponse,
+    ProductCreateRequest,
+    ProductResponse,
+)
 from app.core.contracts import bind
 from app.core.contracts.inventory import InventoryContract
 from app.core.tenancy import TenantContext, get_tenant_session
 
+# Register the inventory service implementation.
 bind(InventoryContract, service.InventoryService)
 
 router = APIRouter()
 
 
-@router.get("/products", response_model=list[ProductResponse])
+# --------------------------------------------------
+# PRODUCT LIST
+# --------------------------------------------------
+
+@router.get(
+    "/products",
+    response_model=list[ProductResponse],
+)
 async def list_products_route(
     ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+    session: Annotated[
+        AsyncSession,
+        Depends(get_tenant_session, scope="function"),
+    ],
     limit: int = Query(default=100, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[ProductResponse]:
@@ -35,14 +50,27 @@ async def list_products_route(
         offset=offset,
     )
 
-    return [ProductResponse.model_validate(product) for product in products]
+    return [
+        ProductResponse.model_validate(product)
+        for product in products
+    ]
 
 
-@router.get("/products/{product_id}", response_model=ProductResponse)
+# --------------------------------------------------
+# GET SINGLE PRODUCT
+# --------------------------------------------------
+
+@router.get(
+    "/products/{product_id}",
+    response_model=ProductResponse,
+)
 async def get_product_route(
     product_id: UUID,
     ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+    session: Annotated[
+        AsyncSession,
+        Depends(get_tenant_session, scope="function"),
+    ],
 ) -> ProductResponse:
     """Get a product belonging to the authenticated organization."""
 
@@ -55,6 +83,10 @@ async def get_product_route(
     return ProductResponse.model_validate(product)
 
 
+# --------------------------------------------------
+# CREATE PRODUCT
+# --------------------------------------------------
+
 @router.post(
     "/products",
     response_model=ProductResponse,
@@ -63,7 +95,10 @@ async def get_product_route(
 async def create_product_route(
     payload: ProductCreateRequest,
     ctx: Annotated[TenantContext, Depends(CREATE_PRODUCTS)],
-    session: Annotated[AsyncSession, Depends(get_tenant_session, scope="function")],
+    session: Annotated[
+        AsyncSession,
+        Depends(get_tenant_session, scope="function"),
+    ],
 ) -> ProductResponse:
     """Create a product within the authenticated organization."""
 
@@ -74,3 +109,39 @@ async def create_product_route(
     )
 
     return ProductResponse.model_validate(product)
+
+
+# --------------------------------------------------
+# SMART INVENTORY HEALTH
+# --------------------------------------------------
+
+@router.get(
+    "/products/{product_id}/health",
+    response_model=InventoryHealthResponse,
+)
+async def get_product_health_route(
+    product_id: UUID,
+    ctx: Annotated[TenantContext, Depends(READ_PRODUCTS)],
+    session: Annotated[
+        AsyncSession,
+        Depends(get_tenant_session, scope="function"),
+    ],
+) -> InventoryHealthResponse:
+    """Return stock health for a tenant-owned inventory product."""
+
+    # Retrieve the product's available stock and
+    # calculate its current inventory health.
+    health = await service.get_product_health(
+        session=session,
+        ctx=ctx,
+        product_id=product_id,
+    )
+
+    # Return the result using the validated API schema.
+    return InventoryHealthResponse(
+        product_id=product_id,
+        quantity=health.quantity,
+        safety_stock_threshold=health.safety_stock_threshold,
+        status=health.status,
+        suggested_restock_quantity=health.suggested_restock_quantity,
+    )
