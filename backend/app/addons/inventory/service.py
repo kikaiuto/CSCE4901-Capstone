@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.addons.inventory import repository
+from app.addons.inventory.health import InventoryHealth, calculate_inventory_health
 from app.addons.inventory.models import InventoryLedger, Product, StockReservation
 from app.addons.inventory.schemas import ProductCreateRequest
 from app.core.contracts.accounting import AccountType
@@ -551,3 +552,29 @@ class InventoryService:
         ]
         await repository.append(self.session, ledger)
         return [_ledger_row(row) for row in ledger]
+
+
+async def get_product_health(
+    session: AsyncSession,
+    ctx: TenantContext,
+    product_id: UUID,
+) -> InventoryHealth:
+    """Calculate a tenant-owned product's health from its available stock."""
+
+    product = await get_product(
+        session=session,
+        organization_id=ctx.organization_id,
+        product_id=product_id,
+    )
+
+    inventory_service = InventoryService(session)
+    stock_levels = await inventory_service.get_stock(ctx, [product_id])
+    stock = stock_levels.get(product_id)
+
+    if stock is None:
+        raise NotFound("Product not found")
+
+    return calculate_inventory_health(
+        quantity=stock.available,
+        safety_stock_threshold=product.safety_stock_threshold,
+    )
